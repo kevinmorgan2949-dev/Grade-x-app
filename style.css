@@ -1,0 +1,403 @@
+:root {
+    --bg-main: #0b0f19;
+    --card-bg: #161e2e;
+    --border-color: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    
+    --accent-red: #ef4444;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-orange: #f59e0b;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 16px;
+}
+
+.app-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.app-header h1 {
+    font-size: 1.8rem;
+    margin: 0 0 5px 0;
+    letter-spacing: -0.5px;
+}
+
+.badge {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    vertical-align: middle;
+}
+
+.app-header p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* 2x2 Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Base Card Design */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+    font-size: 0.95rem;
+    margin: 0 0 10px 0;
+}
+
+/* Subtle Card Top Borders for Theme Accents */
+.card-profile { border-top: 3px solid var(--accent-red); }
+.card-creator { border-top: 3px solid var(--accent-blue); }
+.card-wallet { border-top: 3px solid var(--accent-green); }
+.card-arena { border-top: 3px solid var(--accent-orange); }
+
+/* Form Elements */
+.input-group {
+    margin-bottom: 8px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+
+input[type="text"] {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+    font-size: 0.8rem;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+/* Custom File Upload */
+.file-input {
+    display: none;
+}
+
+.file-label {
+    display: block;
+    background: #0f172a;
+    border: 1px dashed var(--border-color);
+    text-align: center;
+    padding: 6px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+/* Balance Widget */
+.balance-box {
+    background: #0f172a;
+    padding: 8px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.balance-box span {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.balance-box h2 {
+    margin: 2px 0 0 0;
+    font-size: 1.2rem;
+    color: var(--accent-green);
+}
+
+.balance-box small {
+    font-size: 0.7rem;
+}
+
+/* Buttons */
+.btn {
+    width: 100%;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn:active {
+    opacity: 0.8;
+}
+
+.btn-primary { background: var(--accent-red); color: white; }
+.btn-accent { background: var(--accent-blue); color: white; }
+.btn-success { background: var(--accent-green); color: white; }
+.btn-danger { background: var(--accent-orange); color: white; }
+
+.btn-row {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+/* Bottom Stacked Sections */
+.bottom-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 14px;
+}
+
+.info-card h3 {
+    font-size: 0.95rem;
+    margin: 0 0 8px 0;
+}
+
+.empty-state {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+/* Profile Card Specific Styles */
+.profile-view-mode {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 2px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.profile-avatar {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--accent-red), var(--accent-orange));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.profile-details h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.profile-role,
+.profile-status {
+    margin: 2px 0;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.badge-active {
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    width: auto;
+    margin-top: 4px;
+}
+/* Withdrawal Form Styling */
+.withdrawal-section {
+    background: #0f172a;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 8px;
+}
+
+.bank-select {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+    font-size: 0.8rem;
+    box-sizing: border-box;
+}
+
+.bank-select:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+/* Arena Room Lobby Styles */
+.room-lobby-card {
+    border-top: 3px solid var(--accent-orange);
+}
+
+.lobby-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.badge-private {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent-orange);
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--accent-orange);
+}
+
+.room-code-box {
+    background: #0f172a;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 8px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.room-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.room-code-text {
+    font-size: 1.3rem;
+    color: var(--accent-orange);
+    margin: 2px 0 6px 0;
+    letter-spacing: 2px;
+}
+
+.room-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.info-item {
+    background: #0f172a;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+}
+
+.info-val {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.players-lobby {
+    margin-bottom: 8px;
+}
+
+.player-slot {
+    background: #0f172a;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.player-slot.filled {
+    border: 1px solid var(--accent-green);
+}
+
+.player-slot.empty {
+    border: 1px dashed var(--border-color);
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.status-ready {
+    color: var(--accent-green);
+    font-size: 0.65rem;
+    font-weight: bold;
+}
+/* AI Practice Card Styles */
+.ai-practice-card {
+    border-top: 3px solid var(--accent-blue);
+    margin-top: 12px;
+}
+
+.badge-ai {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--accent-blue);
+}
+/* AI Practice Card Styles */
+.ai-practice-card {
+    border-top: 3px solid var(--accent-blue);
+    margin-top: 12px;
+}
+
+.badge-ai {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--accent-blue);
+}

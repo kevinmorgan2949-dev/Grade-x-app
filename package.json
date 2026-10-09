@@ -1,0 +1,12 @@
+{
+  "name": "gradex-arena",
+  "version": "1.0.0",
+  "description": "Campus CBT and Library Marketplace",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

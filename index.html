@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="manifest.json">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeX Arena</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+
+    <header class="app-header">
+        <h1>GradeX <span class="badge">Arena</span></h1>
+        <p>Smart Library, AI Practice, Staked CBT & Creator Economy</p>
+    </header>
+
+    <!-- 2x2 Dashboard Grid -->
+    <main class="dashboard-grid">
+        <!-- Card 1: Profile -->
+    <div class="card card-profile">
+        <h3>👤 Cadet Profile</h3>
+        
+        <!-- Profile View Display -->
+        <div class="profile-view-mode">
+            <div class="profile-avatar">JC</div>
+            <div class="profile-details">
+                <h4>John Cena</h4>
+                <p class="profile-role">PTI Engineering Student</p>
+                <p class="profile-status">Status: <span class="badge-active">Active Cadet</span></p>
+            </div>
+            <button class="btn btn-outline btn-sm">Edit Profile</button>
+        </div>
+
+        <!-- Profile Edit Form -->
+        <div class="profile-edit-mode">
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="e.g. John Cena" value="John Cena">
+            </div>
+            <div class="input-group">
+                <label>Department / Major</label>
+                <input type="text" placeholder="e.g. Petroleum Engineering" value="Petroleum Engineering">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary">Save</button>
+                <button class="btn btn-outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- Card 2: Creator Economy -->
+        <div class="card card-creator">
+            <h3>📚 Publish Note</h3>
+            <div class="input-group">
+                <label>Course Code</label>
+                <input type="text" placeholder="e.g. GNS 102">
+            </div>
+            <input type="file" id="file-upload" class="file-input" accept="image/*, .pdf">
+            <label for="file-upload" class="file-label">Choose File</label>
+            <button class="btn btn-accent">Publish Asset</button>
+        </div>
+
+        <!-- Card 3: Wallet & Staking -->
+        <!-- Card 3: Wallet & Staking -->
+<div class="card card-wallet">
+    <h3>⚡ Web3 Wallet</h3>
+    <div class="balance-box">
+        <span>Balance</span>
+        <h2>100 <small>GX</small></h2>
+    </div>
+    
+    <!-- Default Wallet Buttons -->
+    <div class="btn-row" style="margin-bottom: 10px;">
+        <button class="btn btn-success">Deposit</button>
+        <button class="btn btn-outline">Withdraw</button>
+    </div>
+
+    <!-- Withdrawal Form Section (Structured for HTML/CSS preview) -->
+    <div class="withdrawal-section">
+        <h4 style="font-size: 0.8rem; margin: 5px 0; color: var(--text-muted);">Payout Details</h4>
+        
+        <div class="input-group">
+            <label>Amount to Withdraw (GX)</label>
+            <input type="text" placeholder="e.g. 50">
+        </div>
+
+        <div class="input-group">
+            <label>Select Bank / Fintech</label>
+            <select class="bank-select">
+                <option value="" disabled selected>-- Choose Bank --</option>
+                <optgroup label="Commercial Banks">
+                    <option value="gtb">Guaranty Trust Bank (GTB)</option>
+                    <option value="access">Access Bank</option>
+                    <option value="zenith">Zenith Bank</option>
+                    <option value="uba">United Bank for Africa (UBA)</option>
+                    <option value="firstbank">First Bank of Nigeria</option>
+                    <option value="fidelity">Fidelity Bank</option>
+                </optgroup>
+                <optgroup label="Online Banking & Fintechs">
+                    <option value="opay">OPay Digital Services</option>
+                    <option value="moniepoint">Moniepoint Microfinance Bank</option>
+                    <option value="kuda">Kuda Bank</option>
+                    <option value="palmpay">PalmPay</option>
+                    <option value="etan">Paga</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Account Number</label>
+            <input type="text" placeholder="0123456789" maxlength="10">
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 5px;">Confirm Payout</button>
+    </div>
+</div>
+
+
+        <!-- Card 4: CBT Arena -->
+        <!-- Card 4: CBT Arena Battle Room Lobby -->
+<div class="card card-arena room-lobby-card">
+    <div class="lobby-header">
+        <h3>🛡️ Arena Lobby</h3>
+        <span class="badge-private">Private Room</span>
+    </div>
+
+    <!-- Room Code & Sharing -->
+    <div class="room-code-box">
+        <span class="room-label">ROOM CODE</span>
+        <h2 class="room-code-text">GX-9042</h2>
+        <button class="btn btn-outline btn-sm">Copy Code</button>
+    </div>
+
+    <!-- Room Settings Info -->
+    <div class="room-info-grid">
+        <div class="info-item">
+            <span class="info-label">Host</span>
+            <span class="info-val">John Cena</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Course</span>
+            <span class="info-val">GNS 102</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Stake</span>
+            <span class="info-val">150 GX</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Mode</span>
+            <span class="info-val">1v1 Duel</span>
+        </div>
+    </div>
+
+    <!-- Players Waiting List (Lobby Slot) -->
+    <div class="players-lobby">
+        <h4 style="font-size: 0.75rem; margin: 5px 0; color: var(--text-muted);">Players in Lobby (1/2)</h4>
+        <div class="player-slot filled">
+             <span>👤 John Cena (Host)</span>
+             <span class="status-ready">Ready</span>
+        </div>
+        <div class="player-slot empty">
+             <span>⏳ Waiting for opponent...</span>
+        </div>
+    </div>
+
+    <!-- Room Action Buttons -->
+    <div class="btn-row" style="margin-top: 10px;">
+        <button class="btn btn-success">Start Match</button>
+        <button class="btn btn-danger">Leave Room</button>
+    </div>
+</div>
+
+    </main>
+
+    <!-- Extra Sections Stacked Below -->
+    <section class="bottom-sections">
+        <div class="info-card">
+            <h3>Transaction History</h3>
+            <div id="transaction-list" class="empty-state">No recent transactions</div>
+        </div>
+
+        <div class="info-card">
+            <h3>Library Market</h3>
+            <div id="library-market-list" class="empty-state">No assets listed yet</div>
+        </div>
+    </section>
+    <!-- Extra Sections Stacked Below -->
+    <section class="bottom-sections">
+        <div class="info-card">
+            <h3>Transaction History</h3>
+            <div id="transaction-list" class="empty-state">No recent transactions</div>
+        </div>
+
+        <div class="info-card">
+            <h3>Library Market</h3>
+            <div id="library-market-list" class="empty-state">No assets listed yet</div>
+        </div>
+
+<!-- AI Practice Mode Section -->
+<div class="info-card ai-practice-card" style="background: #0b0f19; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+    <div class="lobby-header">
+        <h3 style="color: var(--text-main); font-size: 0.95rem;">🤖 AI Practice Arena</h3>
+        <span class="badge-ai">AI Powered</span>
+    </div>
+
+    <p class="arena-text" style="margin-bottom: 10px; font-size: 0.75rem; color: var(--text-muted);">Pick a material from your Library Market. The AI will parse it and generate custom CBT questions.</p>
+    
+    <div class="input-group" style="margin-top: 10px;">
+        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Library Material Source</label>
+        <select id="ai-library-select" class="bank-select" style="width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.75rem;">
+            <option value="" disabled selected>-- Select from Library Market --</option>
+        </select>
+    </div>
+
+    <div class="btn-row" style="margin-top: 10px;">
+        <button id="generate-ai-btn" class="btn btn-accent" style="width: 100%;">Generate From Library</button>
+    </div>
+
+    <!-- AI Output Area -->
+    <div id="ai-output-area" style="margin-top: 10px;"></div>
+</div>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<script src="script.js"></script>
