@@ -234,7 +234,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             updateBalance(currentBal - withdrawAmount);
-            alert(`Withdrawal request of ${withdrawAmount} GX to ${bankName} (${bankAccount}) submitted successfully, Oga!`);
+            alert(`Withdrawal request of ${withdrawAmount} GX to ${bankName} (${bankAccount}) submitted successfully`);
         });
     }
 });
+// Tab Switching Logic for 5 Views
+function switchTab(tabId) {
+  // Hide all views
+  document.querySelectorAll('.app-view').forEach(view => {
+    view.classList.remove('active');
+  });
+  
+  // Remove active class from all nav items
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+
+  // Show the selected target view
+  const targetView = document.getElementById(tabId + '-view');
+  if (targetView) {
+    targetView.classList.add('active');
+  }
+  
+  // Highlight the clicked nav button
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+  }
+}
