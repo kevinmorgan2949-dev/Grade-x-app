@@ -304,3 +304,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// Dynamic Profile Updater & Sign Out Handler
+auth.onAuthStateChanged((user) => {
+    const authModal = document.getElementById('auth-modal');
+    if (user) {
+        if (authModal) authModal.style.display = 'none';
+        switchTab('profile');
+
+        // Set dynamic cadet name from email
+        const displayNameEl = document.getElementById('display-name');
+        const avatarEl = document.getElementById('avatar-initials');
+        if (displayNameEl && user.email) {
+            const username = user.email.split('@')[0];
+            const formattedName = username.charAt(0).toUpperCase() + username.slice(1);
+            displayNameEl.textContent = formattedName;
+            if (avatarEl) {
+                avatarEl.textContent = username.substring(0, 2).toUpperCase();
+            }
+        }
+    } else {
+        if (authModal) authModal.style.display = 'flex';
+    }
+});
+
+// Edit Profile Functionality
+function toggleEditProfile() {
+    const nameEl = document.getElementById('display-name');
+    const avatarEl = document.getElementById('avatar-initials');
+    const currentName = nameEl ? nameEl.textContent : 'Cadet';
+    
+    const newName = prompt('Enter your new display name:', currentName);
+    if (newName && newName.trim() !== '') {
+        nameEl.textContent = newName.trim();
+        
+        // Update initials dynamically
+        const parts = newName.trim().split(' ');
+        if (parts.length > 1 && avatarEl) {
+            avatarEl.textContent = (parts[0][0] + parts[1][0]).toUpperCase();
+        } else if (avatarEl) {
+            avatarEl.textContent = newName.trim().substring(0, 2).toUpperCase();
+        }
+        alert('Profile updated successfully, Oga!');
+    }
+}
+
+// Sign Out Functionality
+async function signOutUser() {
+    try {
+        await auth.signOut();
+        alert('Signed out successfully, Oga!');
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) authModal.style.display = 'flex';
+    } catch (error) {
+        alert('Error signing out: ' + error.message);
+    }
+}
