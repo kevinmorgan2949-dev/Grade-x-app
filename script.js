@@ -10,6 +10,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore();
 
 document.addEventListener('DOMContentLoaded', () => {
     const libraryMarketList = document.getElementById('library-market-list');
@@ -198,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (withdrawAmount > currentBal) {
-                alert('Oga, insufficient balance in your wallet!');
+                alert(' insufficient balance in your wallet!');
                 return;
             }
 
@@ -305,23 +306,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 // Dynamic Profile Updater & Sign Out Handler
-auth.onAuthStateChanged((user) => {
+// Monitor Firebase Auth State & Sync Profile / Online Status
+auth.onAuthStateChanged(async (user) => {
     const authModal = document.getElementById('auth-modal');
     if (user) {
         if (authModal) authModal.style.display = 'none';
         switchTab('profile');
 
-        // Set dynamic cadet name from email
+        const username = user.email.split('@')[0];
+        const displayName = username.charAt(0).toUpperCase() + username.slice(1);
+
+        // Set dynamic cadet name and avatar
         const displayNameEl = document.getElementById('display-name');
         const avatarEl = document.getElementById('avatar-initials');
-        if (displayNameEl && user.email) {
-            const username = user.email.split('@')[0];
-            const formattedName = username.charAt(0).toUpperCase() + username.slice(1);
-            displayNameEl.textContent = formattedName;
-            if (avatarEl) {
-                avatarEl.textContent = username.substring(0, 2).toUpperCase();
-            }
-        }
+        if (displayNameEl) displayNameEl.textContent = displayName;
+        if (avatarEl) avatarEl.textContent = username.substring(0, 2).toUpperCase();
+
+        // Save/Update user profile and set online to true in Firestore
+        const userRef = db.collection('users').doc(user.uid);
+        await userRef.set({
+            uid: user.uid,
+            email: user.email,
+            displayName: displayName,
+            online: true,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // Set offline status when user leaves or closes window
+        window.addEventListener('beforeunload', () => {
+            userRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+        });
+
+        loadCadetsDirectory(user.uid);
     } else {
         if (authModal) authModal.style.display = 'flex';
     }
@@ -352,10 +368,49 @@ function toggleEditProfile() {
 async function signOutUser() {
     try {
         await auth.signOut();
-        alert('Signed out successfully, Oga!');
+        alert('Signed out successfully.');
         const authModal = document.getElementById('auth-modal');
         if (authModal) authModal.style.display = 'flex';
     } catch (error) {
         alert('Error signing out: ' + error.message);
     }
+}
+// Load Cadets Directory
+function loadCadetsDirectory(currentUserId) {
+    const cadetsListEl = document.getElementById('cadets-list');
+    if (!cadetsListEl) return;
+
+    db.collection('users').onSnapshot((snapshot) => {
+        cadetsListEl.innerHTML = '';
+        
+        if (snapshot.empty) {
+            cadetsListEl.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">No other cadets found.</p>';
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const cadet = doc.data();
+            if (cadet.uid === currentUserId) return;
+
+            const isOnline = cadet.online;
+            const statusColor = isOnline ? '#22c55e' : '#64748b';
+            const statusText = isOnline ? 'Online' : 'Offline';
+
+            const cadetCard = document.createElement('div');
+            cadetCard.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;';
+            cadetCard.innerHTML = `
+                <div>
+                    <strong style="font-size: 0.8rem; color: var(--text-main);">${cadet.displayName}</strong><br>
+                    <span style="font-size: 0.65rem; color: ${statusColor};">● ${statusText}</span>
+                </div>
+                <button onclick="addFriend('${cadet.uid}', '${cadet.displayName}')" class="btn btn-outline" style="font-size: 0.7rem; padding: 4px 8px;">Add Friend</button>
+            `;
+            cadetsListEl.appendChild(cadetCard);
+        });
+    });
+}
+
+// Add Friend Action
+function addFriend(friendUid, friendName) {
+    alert(`Friend request sent to ${friendName}, Oga!`);
 }
