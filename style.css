@@ -46,28 +46,29 @@ body {
 
 /* 2x2 Grid Layout */
 .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-bottom: 20px;
 }
 
-/* Base Card Design */
+
+/* Base Card Design - Full Width */
 .card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  margin-bottom: 15px;
 }
 
-.card h3 {
-    font-size: 0.95rem;
-    margin: 0 0 10px 0;
-}
 
 /* Subtle Card Top Borders for Theme Accents */
 .card-profile { border-top: 3px solid var(--accent-red); }
@@ -403,17 +404,22 @@ input[type="text"]:focus {
 }
 /* App View / Tab Switching Management */
 .app-view {
-    display: none;
-    padding: 15px;
-    padding-bottom: 90px;
-    /* Space so content doesn't hide behind the bottom nav */
+  display: none;
+  width: 100%;
+  padding-bottom: 70px;
+  box-sizing: border-box;
 }
 
 .app-view.active {
-    display: block;
+  display: block;
 }
 
-/* Fixed Bottom Navigation Bar */
+.card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
 /* Fixed Bottom Navigation Bar */
 .bottom-nav {
   position: fixed;
@@ -448,4 +454,34 @@ input[type="text"]:focus {
 .nav-item.active {
   color: #38bdf8;
   font-weight: bold;
+}
+/* Force absolute full-width layout for all views and cards */
+body,
+html {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.app-view {
+    display: none;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px 14px 80px 14px !important;
+    box-sizing: border-box !important;
+}
+
+.app-view.active {
+    display: block !important;
+    width: 100% !important;
+}
+
+.app-view .card,
+.card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
 }
