@@ -1,6 +1,6 @@
 // Supabase Initialization
 const SUPABASE_URL = 'https://lbolsipvlxuxoeorhwmte.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxib2xzaXB2bHh1eG9lb3Jod210ZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzI5MzkzMzg5LCJleHAiOjIwNDQ5NjkzODl9.your_full_key_here';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxib2xzaXB2bHh1eG9lb3Jod210ZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzI5MzkzMzg5LCJleHAiOjIwNDQ5NjkzODl9'; // Paste your actual complete key here without placeholders
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener('DOMContentLoaded', () => {
