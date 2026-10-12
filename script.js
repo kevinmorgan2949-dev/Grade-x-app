@@ -261,3 +261,122 @@ function switchTab(tabId) {
     event.currentTarget.classList.add('active');
   }
 }
+// ==========================================
+// 1. SUPABASE INITIALIZATION
+// ==========================================
+const SUPABASE_URL = 'https://lbolsipvlxuxoeorhwmte.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxib2xzaXB2bHh1b2Vvcmh3bXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODk5NzMsImV4cCI6MjEwNjk2NTk3M30.y89bLPoLfPncp82bOcwFhjangVupBB_MpsH6qfWyezA';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+// ==========================================
+// 2. TAB SWITCHING MANAGEMENT
+// ==========================================
+function switchTab(tabId) {
+  // Hide all views
+  const views = document.querySelectorAll('.app-view');
+  views.forEach(view => {
+    view.classList.remove('active');
+  });
+
+  // Show target view
+  const targetView = document.getElementById(tabId + '-view');
+  if (targetView) {
+    targetView.classList.add('active');
+  }
+
+  // Update active state on navigation items
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    item.classList.remove('nav-item-active');
+  });
+  
+  // Highlight active nav button if matched
+  event && event.currentTarget && event.currentTarget.classList.add('nav-item-active');
+}
+
+
+// ==========================================
+// 3. AUTHENTICATION & SESSION LOGIC
+// ==========================================
+let isLoginMode = true;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check if user has an active session on load
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  const authModal = document.getElementById('auth-modal');
+  if (session) {
+    // If logged in, hide modal and sync user data
+    if (authModal) authModal.style.display = 'none';
+  } else {
+    // If not logged in, show auth modal
+    if (authModal) authModal.style.display = 'flex';
+  }
+});
+
+// Toggle between Login and Registration modes
+const toggleBtn = document.getElementById('auth-toggle-mode');
+if (toggleBtn) {
+  toggleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    isLoginMode = !isLoginMode;
+    const title = document.getElementById('auth-title');
+    const subtitle = document.getElementById('auth-subtitle');
+    const btn = document.getElementById('auth-action-btn');
+    
+    if (isLoginMode) {
+      title.innerText = "🔐 Cadet Portal Access";
+      subtitle.innerText = "Sign in or create your account to sync your stats and wallet.";
+      btn.innerText = "Sign In";
+      toggleBtn.innerText = "Don't have an account? Register";
+    } else {
+      title.innerText = "📝 Create Cadet Account";
+      subtitle.innerText = "Register to start staking, dueling, and publishing notes.";
+      btn.innerText = "Create Account & Send Verification";
+      toggleBtn.innerText = "Already have an account? Sign In";
+    }
+  });
+}
+
+// Handle Sign In / Registration Execution
+const actionBtn = document.getElementById('auth-action-btn');
+if (actionBtn) {
+  actionBtn.addEventListener('click', async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+
+    if (!email || !password) {
+      alert("Please enter both email and password, Oga!");
+      return;
+    }
+
+    if (isLoginMode) {
+      // Login Logic
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert("Login failed: " + error.message);
+      } else {
+        alert("Welcome back, Cadet!");
+        document.getElementById('auth-modal').style.display = 'none';
+        switchTab('profile');
+      }
+    } else {
+      // Registration Logic (Sends Email Verification Code/Link)
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
+      });
+      if (error) {
+        alert("Registration failed: " + error.message);
+      } else {
+        alert("Account created successfully! Check your email for your verification code/link.");
+        document.getElementById('auth-modal').style.display = 'none';
+      }
+    }
+  });
+}
