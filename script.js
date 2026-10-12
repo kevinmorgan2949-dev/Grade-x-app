@@ -414,3 +414,257 @@ function loadCadetsDirectory(currentUserId) {
 function addFriend(friendUid, friendName) {
     alert(`Friend request sent to ${friendName}, Oga!`);
 }
+// 1. Show selected filename instantly on choose file button
+const fileInput = document.getElementById('file-upload') || document.querySelector('input[type="file"]');
+const chooseFileLabel = document.querySelector('label[for="file-upload"]');
+if (fileInput && chooseFileLabel) {
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files[0]) {
+            chooseFileLabel.textContent = `Selected: ${fileInput.files[0].name}`;
+            chooseFileLabel.style.color = '#22c55e';
+        }
+    });
+}
+
+// 2. Handle Publish Asset & Save Permanently to Firestore
+const publishBtn = document.querySelector('.card-creator .btn-accent') || document.querySelector('button[style*="background"]');
+const courseInput = document.querySelector('.card-creator input[type="text"]');
+
+if (publishBtn) {
+    publishBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const courseCode = courseInput ? courseInput.value.trim() : '';
+        const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
+        const currentUser = auth.currentUser;
+
+        if (!courseCode || !file) {
+            alert('Oga, please enter a course code and choose a PDF file first!');
+            return;
+        }
+
+        if (!currentUser) {
+            alert('Oga, you must be signed in to publish assets!');
+            return;
+        }
+
+        alert('Uploading asset to Firestore database...');
+
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async function () {
+                const base64File = reader.result;
+
+                // Save to Firestore so it persists permanently on refresh
+                await db.collection('library_market').add({
+                    courseCode: courseCode,
+                    fileName: file.name,
+                    fileData: base64File,
+                    publisherEmail: currentUser.email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('Asset published & saved to market successfully, Oga!');
+                if (courseInput) courseInput.value = '';
+                if (chooseFileLabel) {
+                    chooseFileLabel.textContent = 'Choose File';
+                    chooseFileLabel.style.color = 'var(--text-main)';
+                }
+            };
+        } catch (err) {
+            console.error('Publish error:', err);
+            alert('Could not publish asset: ' + err.message);
+        }
+    });
+}
+
+// 3. Load Library Market Notes from Firestore (Persists on Refresh)
+function loadLibraryMarket() {
+    const libraryMarketList = document.getElementById('library-market-list');
+    if (!libraryMarketList) return;
+
+    db.collection('library_market').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+        libraryMarketList.innerHTML = '';
+
+        if (snapshot.empty) {
+            libraryMarketList.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">- No assets listed yet</p>';
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const item = doc.data();
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'market-item';
+            itemDiv.style.cssText = 'background: #0f172a; border: 1px solid var(--border-color); padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
+            
+            itemDiv.innerHTML = `
+                <span style="color: var(--text-main); font-size: 0.8rem;">
+                    <strong>${item.courseCode} (${item.fileName})</strong><br>
+                    <span style="font-size: 0.65rem; color: var(--text-muted);">By: ${item.publisherEmail}</span>
+                </span>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button onclick="readBookInApp('${encodeURIComponent(item.fileData)}', '${item.courseCode}')" class="btn btn-primary" style="font-size: 0.65rem; padding: 4px 8px; background: var(--accent-blue, #6366f1); border: none; color: white; cursor: pointer;">Read</button>
+                    <a href="${item.fileData}" download="${item.fileName}" style="font-size: 0.65rem; color: #38bdf8; text-decoration: underline;">Download</a>
+                </div>
+            `;
+            libraryMarketList.appendChild(itemDiv);
+        });
+    });
+}
+
+// 4. In-App Book Reader Modal (Prevents unwanted downloads when clicking Read)
+function readBookInApp(base64Data, title) {
+    const decodedData = decodeURIComponent(base64Data);
+    
+    let readerModal = document.getElementById('in-app-reader-modal');
+    if (!readerModal) {
+        readerModal = document.createElement('div');
+        readerModal.id = 'in-app-reader-modal';
+        readerModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box;';
+        document.body.appendChild(readerModal);
+    }
+
+    readerModal.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="color: white; font-size: 0.9rem; margin: 0;">📖 Reading: ${title}</h3>
+            <button onclick="document.getElementById('in-app-reader-modal').style.display='none'" style="font-size: 0.7rem; padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Close Reader</button>
+        </div>
+        <div style="flex: 1; background: white; border-radius: 8px; overflow: hidden; width: 100%;">
+            <iframe src="${decodedData}" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    `;
+    readerModal.style.display = 'flex';
+}
+
+// Auto-load market notes when page starts
+document.addEventListener('DOMContentLoaded', () => {
+    loadLibraryMarket();
+});
+// 1. Show selected filename instantly on choose file button
+const fileInput = document.getElementById('file-upload') || document.querySelector('input[type="file"]');
+const chooseFileLabel = document.querySelector('label[for="file-upload"]');
+if (fileInput && chooseFileLabel) {
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files[0]) {
+            chooseFileLabel.textContent = `Selected: ${fileInput.files[0].name}`;
+            chooseFileLabel.style.color = '#22c55e';
+        }
+    });
+}
+
+// 2. Handle Publish Asset & Save Permanently to Firestore
+const publishBtn = document.querySelector('.card-creator .btn-accent') || document.querySelector('button[style*="background"]');
+const courseInput = document.querySelector('.card-creator input[type="text"]');
+
+if (publishBtn) {
+    publishBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const courseCode = courseInput ? courseInput.value.trim() : '';
+        const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
+        const currentUser = auth.currentUser;
+
+        if (!courseCode || !file) {
+            alert('Oga, please enter a course code and choose a PDF file first!');
+            return;
+        }
+
+        if (!currentUser) {
+            alert('Oga, you must be signed in to publish assets!');
+            return;
+        }
+
+        alert('Uploading asset to Firestore database...');
+
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async function () {
+                const base64File = reader.result;
+
+                // Save to Firestore so it persists permanently on refresh
+                await db.collection('library_market').add({
+                    courseCode: courseCode,
+                    fileName: file.name,
+                    fileData: base64File,
+                    publisherEmail: currentUser.email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('Asset published & saved to market successfully, Oga!');
+                if (courseInput) courseInput.value = '';
+                if (chooseFileLabel) {
+                    chooseFileLabel.textContent = 'Choose File';
+                    chooseFileLabel.style.color = 'var(--text-main)';
+                }
+            };
+        } catch (err) {
+            console.error('Publish error:', err);
+            alert('Could not publish asset: ' + err.message);
+        }
+    });
+}
+
+// 3. Load Library Market Notes from Firestore (Persists on Refresh)
+function loadLibraryMarket() {
+    const libraryMarketList = document.getElementById('library-market-list');
+    if (!libraryMarketList) return;
+
+    db.collection('library_market').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+        libraryMarketList.innerHTML = '';
+
+        if (snapshot.empty) {
+            libraryMarketList.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">- No assets listed yet</p>';
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const item = doc.data();
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'market-item';
+            itemDiv.style.cssText = 'background: #0f172a; border: 1px solid var(--border-color); padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
+            
+            itemDiv.innerHTML = `
+                <span style="color: var(--text-main); font-size: 0.8rem;">
+                    <strong>${item.courseCode} (${item.fileName})</strong><br>
+                    <span style="font-size: 0.65rem; color: var(--text-muted);">By: ${item.publisherEmail}</span>
+                </span>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button onclick="readBookInApp('${encodeURIComponent(item.fileData)}', '${item.courseCode}')" class="btn btn-primary" style="font-size: 0.65rem; padding: 4px 8px; background: var(--accent-blue, #6366f1); border: none; color: white; cursor: pointer;">Read</button>
+                    <a href="${item.fileData}" download="${item.fileName}" style="font-size: 0.65rem; color: #38bdf8; text-decoration: underline;">Download</a>
+                </div>
+            `;
+            libraryMarketList.appendChild(itemDiv);
+        });
+    });
+}
+
+// 4. In-App Book Reader Modal (Prevents unwanted downloads when clicking Read)
+function readBookInApp(base64Data, title) {
+    const decodedData = decodeURIComponent(base64Data);
+    
+    let readerModal = document.getElementById('in-app-reader-modal');
+    if (!readerModal) {
+        readerModal = document.createElement('div');
+        readerModal.id = 'in-app-reader-modal';
+        readerModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box;';
+        document.body.appendChild(readerModal);
+    }
+
+    readerModal.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="color: white; font-size: 0.9rem; margin: 0;">📖 Reading: ${title}</h3>
+            <button onclick="document.getElementById('in-app-reader-modal').style.display='none'" style="font-size: 0.7rem; padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Close Reader</button>
+        </div>
+        <div style="flex: 1; background: white; border-radius: 8px; overflow: hidden; width: 100%;">
+            <iframe src="${decodedData}" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    `;
+    readerModal.style.display = 'flex';
+}
+
+// Auto-load market notes when page starts
+document.addEventListener('DOMContentLoaded', () => {
+    loadLibraryMarket();
+});
