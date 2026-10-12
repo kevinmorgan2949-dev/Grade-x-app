@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="manifest.json">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradeX Arena</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
 
     <header class="app-header">
         <h1>GradeX <span class="badge">Arena</span></h1>
@@ -17,178 +14,117 @@
     </header>
 
     <!-- 2x2 Dashboard Grid -->
-    <main class="dashboard-grid">
-      <!-- Auth Popup Modal -->
-<div id="auth-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box;">
-  <div class="card card-profile" style="width: 100%; max-width: 400px; background: #0b1329; border: 1px solid var(--border-color);">
-    <h3 id="auth-title">🔐login</h3>
-    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;" id="auth-subtitle">Sign in or create your account to sync your stats and wallet.</p>
-    
-    <div class="input-group" style="margin-bottom: 10px;">
-      <label>Email Address</label>
-      <input type="email" id="auth-email" placeholder="myname@gmail.com" style="width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
+    <div class="dashboard-grid">
+        <!-- Auth Popup Modal -->
+        <div id="auth-modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box;">
+            <div class="card card-profile" style="width: 100%; max-width: 400px; background: #0f172a; border: 1px solid var(--border-color);">
+                <h3 id="auth-title" style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 12px;"><span style="color: var(--accent-yellow);">🔐</span> login</h3>
+                <p id="auth-subtitle" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Sign in or create your account to sync your stats and wallet.</p>
+                
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label>Email Address</label>
+                    <input type="email" id="auth-email" placeholder="myname@gmail.com" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
+                </div>
+
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label>Password</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
+                </div>
+
+                <button id="auth-action-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px; font-size: 0.75rem;">Sign In</button>
+
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="#" id="auth-toggle-mode" style="font-size: 0.75rem; color: var(--accent-blue); text-decoration: none;">Don't have an account? Register</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-view" class="app-view active">
+            <div class="card card-profile">
+                <div class="profile-avatar" id="avatar-initials">JC</div>
+                <div class="display-name" id="display-name">John Cena</div>
+                <p id="display-dept" style="font-size: 0.85rem; color: var(--text-muted);">PTI Engineering Student</p>
+                <p style="font-size: 0.85rem; color: var(--accent-green);">Status: <span style="color: #22c55e;">Active Cadet</span></p>
+                
+                <button class="btn btn-outline" onclick="toggleEditProfile()" style="margin-top: 12px;">Edit Profile</button>
+            </div>
+        </div>
+
+        <!-- Library Tab View -->
+        <div id="library-view" class="app-view">
+            <div class="card card-creator">
+                <h3>Publish Note</h3>
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label>Course Code</label>
+                    <input type="text" placeholder="e.g. GNS 102" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
+                </div>
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <input type="file" id="file-upload" accept="image/*,.pdf" style="display: none;">
+                    <label for="file-upload" style="display: block; margin-top: 10px; background: rgb(255, 255, 255, 0.05); border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-size: 0.85rem;">Choose File</label>
+                </div>
+                <button id="publish-asset-btn" class="btn btn-accent" style="margin-top: 12px; width: 100%;">Publish Asset</button>
+            </div>
+            <div class="card" style="margin-top: 15px">
+                <h3>Library Market</h3>
+                <div id="library-market-list" style="margin-top: 10px;">
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">- No assets listed yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Tab View -->
+        <div id="wallet-view" class="app-view">
+            <div class="card card-wallet">
+                <h3>My Wallet</h3>
+                <div class="balance-box" style="margin-top: 10px;">
+                    <span style="color: var(--text-muted);">Balance:</span>
+                    <h2 id="balance-h2">50GX</h2>
+                </div>
+                <div class="btn-row" style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" id="deposit-btn">Deposit</button>
+                    <button class="btn btn-outline" id="withdraw-btn">Withdraw</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Arena View -->
+        <div id="arena-view" class="app-view">
+            <div class="card" style="margin: 10px 0; background: rgb(255, 255, 255, 0.03); padding: 10px; border-radius: 8px;">
+                <p><strong>Arena Duels</strong></p>
+            </div>
+        </div>
+
+        <!-- AI Practice Tab View -->
+        <div id="ai-view" class="app-view">
+            <div class="card card-arena">
+                <h3>AI Practice</h3>
+                <select id="ai-library-select" style="width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.75rem;">
+                    <option value="" disabled selected>-- Select from Library Market --</option>
+                </select>
+                <button id="generate-ai-btn" class="btn btn-accent" style="width: 100%; margin-top: 10px;">Generate From Library</button>
+                <div id="ai-output-area" style="margin-top: 10px;"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="input-group" id="password-group" style="margin-bottom: 10px;">
-      <label>Password</label>
-      <input type="password" id="auth-password" placeholder="••••••••" style="width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
-    </div>
+    <!-- Payment Gateway CDN -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
 
-    <button id="auth-action-btn" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Sign In</button>
-    
-    <div style="text-align: center; margin-top: 12px;">
-      <a href="#" id="auth-toggle-mode" style="font-size: 0.75rem; color: #38bdf8; text-decoration: none;">Don't have an account? Register</a>
-    </div>
-  </div>
-</div>
+    <!-- Firebase App & Auth Compat CDNs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-<div id="profile-view" class="app-view active">
-  <div class="card card-profile">
-    <h3>Cadet Profile</h3>
-    <div class="profile-avatar" id="avatar-initials">JC</div>
-    <h4 id="display-name">John Cena</h4>
-    <p id="display-dept">PTI Engineering Student</p>
-    <p style="font-size: 0.85rem; color: var(--text-muted);">Status: <span style="color: #22c55e;">Active Cadet</span></p>
-    
-    <button class="btn btn-outline" onclick="toggleEditProfile()" style="margin-top: 10px;">Edit Profile</button>
-    
-    <!-- Profile Edit Form -->
-    <div id="profile-edit-form" class="profile-edit-mode" style="margin-top: 15px; display: none;">
-      <div class="input-group">
-        <label>Full Name</label>
-        <input type="text" id="edit-fullname" placeholder="e.g. John doe" value="John Cena">
-      </div>
-      <div class="input-group" style="margin-top: 10px;">
-        <label>Department / Major</label>
-        <input type="text" id="edit-dept" placeholder="e.g. Petroleum Engineering" value="Petroleum Engineering">
-      </div>
-      <div class="btn-row" style="margin-top: 12px; display: flex; gap: 8px;">
-        <button id="profile-save-btn" class="btn btn-primary" style="flex: 1;">Save</button>
-        <button class="btn btn-outline" onclick="toggleEditProfile()" style="flex: 1;">Cancel</button>
-      </div>
-    </div>
-  </div>
-</div>
+    <!-- Main Script -->
+    <script src="script.js"></script>
 
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('profile')">Profile</button>
+        <button class="nav-item" onclick="switchTab('library')">Library</button>
+        <button class="nav-item" onclick="switchTab('wallet')">Wallet</button>
+        <button class="nav-item" onclick="switchTab('ai')">Ask AI</button>
+        <button class="nav-item" onclick="switchTab('arena')">Duels</button>
+    </nav>
 
-<!-- Library Tab View -->
-<div id="library-view" class="app-view">
-  <!-- Card 2: Creator Economy / Publish Note -->
-  <div class="card card-creator">
-    <h3>📚 Publish Note</h3>
-    <div class="input-group">
-      <label>Course Code</label>
-      <input type="text" id="course-code-input" placeholder="e.g. GNS 102" style="width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; margin-top: 4px;">
-    </div>
-    
-    <input type="file" id="file-upload" class="file-input" accept="image/*, .pdf" style="display: none;">
-    <label for="file-upload" class="file-label" style="display: block; margin-top: 10px; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Choose File</label>
-    
-    <button id="publish-asset-btn" class="btn btn-accent" style="margin-top: 12px; width: 100%;">Publish Asset</button>
-  </div>
-
-  <!-- Library Market Section (Placed right below it) -->
-  <div class="card" style="margin-top: 15px;">
-    <h3>Library Market</h3>
-    <div id="library-market-list" style="margin-top: 10px;">
-      <p style="color: var(--text-muted); font-size: 0.85rem;">No assets listed yet</p>
-    </div>
-  </div>
-</div>
-
-<!-- Wallet Tab View -->
-<div id="wallet-view" class="app-view">
-  <div class="card card-wallet">
-    <h3>💰 MY Wallet</h3>
-    <div class="balance-box" style="margin: 10px 0;">
-      <span style="color: var(--text-muted); font-size: 0.85rem;">Balance</span>
-      <h2 style="font-size: 1.8rem; color: #22c55e;">0 ₦</h2>
-    </div>
-    <div class="btn-row" style="display: flex; gap: 8px;">
-      <button class="btn btn-primary" style="flex: 1;">Deposit</button>
-      <button class="btn btn-outline" style="flex: 1;">Withdraw</button>
-    </div>
-    <div class="input-group" style="margin-top: 15px;">
-      <label>Payout Details</label>
-      <input type="number" placeholder="Amount to Withdraw (₦) e.g. 50">
-      <select class="bank-select" style="margin-top: 8px; width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px;">
-        <option value="" disabled selected>-- Choose Bank --</option>
-        <option value="opay">OPay Digital Services</option>
-        <option value="kuda">Kuda Bank</option>
-        <option value="palmpay">PalmPay</option>
-      </select>
-      <input type="text" placeholder="Account Number" style="margin-top: 8px; width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px;">
-    </div>
-    <button class="btn btn-danger" style="width: 100%; margin-top: 12px;">Confirm Payout</button>
-  </div>
-
-  <!-- Transaction History inside Wallet View -->
-  <div class="card" style="margin-top: 15px;">
-    <h3>Transaction History</h3>
-    <div id="transaction-list">
-      <p style="color: var(--text-muted); font-size: 0.85rem;">No recent transactions</p>
-    </div>
-  </div>
-</div>
-
-<div id="arena-view" class="app-view">
-  <div class="card card-arena-room-lobby">
-    <h3>⚔️ Arena Lobby</h3>
-    <div class="room-code-box" style="margin: 10px 0; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <span style="font-size: 0.75rem; color: var(--text-muted);">Room Code</span>
-        <h4 id="room-code-display" style="font-family: monospace; font-size: 1.1rem;">GX-9042</h4>
-      </div>
-      <button class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 8px;">Copy Code</button>
-    </div>
-    <div class="room-settings-info" style="font-size: 0.85rem; line-height: 1.5;">
-      <p><strong>Host:</strong> John Cena</p>
-      <p><strong>Course:</strong> GNS 102</p>
-      <p><strong>Stake:</strong> 150 ₦</p>
-      <p><strong>Mode:</strong> 1v1 Duel</p>
-    </div>
-    <div class="btn-row" style="margin-top: 15px; display: flex; gap: 8px;">
-      <button class="btn btn-success" style="flex: 1;">Start Match</button>
-      <button class="btn btn-danger" style="flex: 1;">Leave Room</button>
-    </div>
-  </div>
-</div>
-
-    </main>
-
-  
-
-<!-- AI Practice Tab View -->
-<div id="ai-view" class="app-view">
-  <div class="card card-arena">
-    <h3>🤖Practice with Gradebot</h3>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Pick a material from your Library Market. The AI will parse it and generate custom CBT questions.</p>
-    <div class="input-group">
-      <label style="font-size: 0.75rem; color: var(--text-muted);">Library Material Source</label>
-      <select id="ai-library-select" class="bank-select" style="width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.75rem;">
-        <option value="" disabled selected>-- Select from Library Market --</option>
-      </select>
-    </div>
-    <button id="generate-ai-btn" class="btn btn-accent" style="width: 100%; margin-top: 10px;">Generate From Library</button>
-    <div id="ai-output-area" style="margin-top: 10px;"></div>
-  </div>
-</div>
-
-<!-- Payment Gateway CDN -->
-<script src="https://js.paystack.co/v1/inline.js"></script>
-
-<!-- Supabase v2 CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- Main Script (Loaded only once) -->
-<script src="script.js"></script>
-
-<!-- Bottom Navigation Bar -->
-<!-- Bottom Navigation Bar (5 Tabs) -->
-<nav class="bottom-nav">
-  <button class="nav-item active" onclick="switchTab('profile')">👤 Profile</button>
-  <button class="nav-item" onclick="switchTab('library')">📚 Library</button>
-  <button class="nav-item" onclick="switchTab('wallet')">💰 Wallet</button>
-  <button class="nav-item" onclick="switchTab('ai')">🤖ask Ai</button>
-  <button class="nav-item" onclick="switchTab('arena')">⚔️ Duels</button>
-</nav>
+</body>
+</html>
