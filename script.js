@@ -346,30 +346,36 @@ if (actionBtn) {
     }
 
     if (isLoginMode) {
-      // Login Logic
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert("Login failed: " + error.message);
-      } else {
-        alert("Welcome back, Cadet!");
-        document.getElementById('auth-modal').style.display = 'none';
-        switchTab('profile');
-      }
-    } else {
-      // Registration Logic (Sends Email Verification Code/Link)
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          emailRedirectTo: window.location.origin
+    if (isLoginMode) {
+        // Login Logic
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        })
+        if (error) {
+            alert("Login failed: " + error.message)
+        } else {
+            alert("Welcome back, Cadet!")
+            document.getElementById('auth-modal').style.display = 'none'
+            switchTab('profile')
         }
-      });
-      if (error) {
-        alert("Registration failed: " + error.message);
-      } else {
-        alert("Account created successfully! Check your email for your verification code/link.");
-        document.getElementById('auth-modal').style.display = 'none';
-      }
+    } else {
+        // Registration Logic (Sends Email Verification Code/Link)
+        const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: {
+                emailRedirectTo: window.location.origin
+            }
+        })
+        if (error) {
+            alert("Registration failed: " + error.message)
+        } else {
+            alert("Account created successfully! Check your email for your verification code/link.")
+            document.getElementById('auth-modal').style.display = 'none'
+        }
+    }
+
     }
   });
 }
