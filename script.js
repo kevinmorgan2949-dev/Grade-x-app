@@ -1,6 +1,7 @@
-// Supabase Project Credentials
-const SUPABASE_URL = 'https://lbolsipvlxuoeorhwmte.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxib2xzaXB2bHh1b2Vvcmh3bXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODk5NzMsImV4cCI6MjEwNjk2NTk3M30.y89bLPoLfPncp82bOcwFhjangVupBB_MpsH6qfWyezA';
+// Supabase Initialization
+const SUPABASE_URL = 'https://lbolsipvlxuxoeorhwmte.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxib2xzaXB2bHh1eG9lb3Jod210ZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzI5MzkzMzg5LCJleHAiOjIwNDQ5NjkzODl9.your_full_key_here';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener('DOMContentLoaded', () => {
     const libraryMarketList = document.getElementById('library-market-list');
@@ -262,15 +263,7 @@ function switchTab(tabId) {
   }
 }
 // ==========================================
-// 1. SUPABASE INITIALIZATION
-// ==========================================
-const SUPABASE_URL = 'https://lbolsipvlxuxoeorhwmte.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxib2xzaXB2bHh1b2Vvcmh3bXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzODk5NzMsImV4cCI6MjEwNjk2NTk3M30.y89bLPoLfPncp82bOcwFhjangVupBB_MpsH6qfWyezA';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-
-// ==========================================
 // 2. TAB SWITCHING MANAGEMENT
 // ==========================================
 function switchTab(tabId) {
