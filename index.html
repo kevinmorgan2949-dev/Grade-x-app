@@ -39,16 +39,20 @@
             </div>
         </div>
 
-        <div id="profile-view" class="app-view active">
-            <div class="card card-profile">
-                <div class="profile-avatar" id="avatar-initials">JC</div>
-                <div class="display-name" id="display-name">John Cena</div>
-                <p id="display-dept" style="font-size: 0.85rem; color: var(--text-muted);">PTI Engineering Student</p>
-                <p style="font-size: 0.85rem; color: var(--accent-green);">Status: <span style="color: #22c55e;">Active Cadet</span></p>
+        <        <div id="profile-view" class="app-view active">
+            <div class="card card-profile" style="text-align: center; padding: 20px;">
+                <div class="profile-avatar" id="avatar-initials" style="width: 60px; height: 60px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin: 0 auto 10px auto; font-size: 1.2rem;">JC</div>
+                <div class="display-name" id="display-name" style="font-size: 1rem; font-weight: bold; color: var(--text-main);">Cadet</div>
+                <p id="display-dept" style="font-size: 0.8rem; color: var(--text-muted); margin: 4px 0;">PTI Petroleum Engineering</p>
+                <p style="font-size: 0.8rem; color: var(--accent-green); margin-bottom: 12px;">Status: <span style="color: #22c55e;">Active Cadet</span></p>
                 
-                <button class="btn btn-outline" onclick="toggleEditProfile()" style="margin-top: 12px;">Edit Profile</button>
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <button class="btn btn-outline" onclick="toggleEditProfile()" style="font-size: 0.75rem; padding: 6px 12px;">Edit Profile</button>
+                    <button class="btn btn-primary" onclick="signOutUser()" style="font-size: 0.75rem; padding: 6px 12px; background: #ef4444; border: none;">Sign Out</button>
+                </div>
             </div>
         </div>
+
 
         <!-- Library Tab View -->
         <div id="library-view" class="app-view">
