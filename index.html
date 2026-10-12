@@ -3,147 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeX Arena</title>
+    <title>GradeX Arena - Student Study Workspace</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase CDNs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <header class="app-header">
-        <h1>GradeX <span class="badge">Arena</span></h1>
-        <p>Smart Library, AI Practice, Staked CBT & Creator Economy</p>
+    <!-- Auth Modal -->
+    <div id="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.95); z-index: 20000; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 24px; border-radius: 16px; width: 100%; max-width: 380px; text-align: center;">
+            <h2 id="auth-title" style="color: var(--text-main); font-size: 1.25rem; margin-bottom: 6px;">🔐 Login / Register</h2>
+            <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 20px;">Access your GradeX workspace and notes.</p>
+            
+            <input type="email" id="auth-email" placeholder="Email address" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 12px; box-sizing: border-box;">
+            <input type="password" id="auth-password" placeholder="Password" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 16px; box-sizing: border-box;">
+            
+            <button id="auth-action-btn" class="btn btn-primary" style="width: 100%; background: var(--accent-purple); border: none; padding: 12px; border-radius: 8px; color: white; font-weight: bold; font-size: 0.8rem; margin-bottom: 12px; cursor: pointer;">Sign In</button>
+            <a href="#" id="auth-toggle-mode" style="color: var(--text-muted); font-size: 0.75rem; text-decoration: underline;">Don't have an account? Register</a>
+        </div>
+    </div>
+
+    <!-- Slide-Out Sidebar Drawer -->
+    <div id="sidebar-drawer" style="position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #0f172a; border-right: 1px solid var(--border-color); z-index: 15000; transition: 0.3s ease; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 0.95rem; font-weight: bold; color: white; margin: 0;">Workspace Menu</h3>
+            <button onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">✕</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; flex: 1; overflow-y: auto;">
+            <a href="#" onclick="switchTab('profile'); toggleSidebar();" style="color: #cbd5e1; text-decoration: none; font-size: 0.85rem; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.02);">👤 My Profile</a>
+            <a href="#" onclick="switchTab('library'); toggleSidebar();" style="color: #cbd5e1; text-decoration: none; font-size: 0.85rem; padding: 8px; border-radius: 6px;">📚 Library & Books (100K+)</a>
+            <a href="#" onclick="switchTab('ai'); toggleSidebar();" style="color: #cbd5e1; text-decoration: none; font-size: 0.85rem; padding: 8px; border-radius: 6px;">🤖 GradeBot AI Chat</a>
+            <a href="#" onclick="switchTab('community'); toggleSidebar();" style="color: #cbd5e1; text-decoration: none; font-size: 0.85rem; padding: 8px; border-radius: 6px;">💬 Community Feed</a>
+            <a href="#" onclick="switchTab('cadets'); toggleSidebar();" style="color: #cbd5e1; text-decoration: none; font-size: 0.85rem; padding: 8px; border-radius: 6px;">👥 Cadet Directory</a>
+        </div>
+        <button onclick="signOutUser()" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; padding: 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer;">Sign Out</button>
+    </div>
+
+    <!-- Main Header -->
+    <header style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--card-bg);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">☰</button>
+            <h1 style="font-size: 1.05rem; font-weight: bold; color: var(--text-main); margin: 0;">GradeX <span style="color: var(--accent-purple);">Arena</span></h1>
+        </div>
     </header>
 
-    <!-- 2x2 Dashboard Grid -->
-    <div class="dashboard-grid">
-        <!-- Cadets Directory & Friends Tab View -->
-<div id="cadets-view" class="app-view">
-    <div class="card" style="background: #0f172a; border: 1px solid var(--border-color); padding: 15px; border-radius: 10px;">
-        <h3 style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 10px;">👥 Cadet Directory & Friends</h3>
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Connect with fellow PTI engineering students and duel or study together.</p>
+    <!-- Main App Container -->
+    <main style="padding-bottom: 80px;">
         
-        <div id="cadets-list" style="display: flex; flex-direction: column; gap: 8px;">
-            <p style="font-size: 0.75rem; color: var(--text-muted);">Loading active cadets...</p>
-        </div>
-    </div>
-</div>
+        <!-- 1. PROFILE / DASHBOARD VIEW -->
+        <div id="profile-view" class="app-view active" style="padding: 16px; display: none;">
+            <div style="background: linear-gradient(135deg, #0f172a, #1e1b4b); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; margin-bottom: 16px; text-align: center;">
+                <div id="avatar-initials" style="width: 64px; height: 64px; background: var(--accent-purple); color: white; font-size: 1.3rem; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">KM</div>
+                <h2 id="display-name" style="font-size: 1.1rem; font-weight: bold; color: white; margin: 0;">Cadet</h2>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 4px 0 12px 0;">PTI Petroleum Engineering & Geosciences (PEG)</p>
+                <div style="display: flex; justify-content: center; gap: 8px;">
+                    <button onclick="toggleEditProfile()" class="btn btn-outline" style="font-size: 0.7rem; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white; border-radius: 6px;">Edit Profile</button>
+                </div>
+            </div>
 
-        <!-- Auth Popup Modal -->
-        <div id="auth-modal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box;">
-            <div class="card card-profile" style="width: 100%; max-width: 400px; background: #0f172a; border: 1px solid var(--border-color);">
-                <h3 id="auth-title" style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 12px;"><span style="color: var(--accent-yellow);">🔐</span> login</h3>
-                <p id="auth-subtitle" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Sign in or create your account to sync your stats and wallet.</p>
+            <!-- Quick Action Workspace Banner -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <span style="font-size: 0.65rem; background: rgba(139, 92, 246, 0.2); color: #c084fc; padding: 3px 8px; border-radius: 10px; font-weight: 600;">📚 EXAM PREP HUB</span>
+                <h3 style="font-size: 0.95rem; font-weight: bold; color: white; margin: 8px 0 4px 0;">Ready to learn, Cadet?</h3>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 12px;">Upload course notes, browse the library market, or chat with GradeBot AI.</p>
+                <button onclick="switchTab('library')" style="width: 100%; background: var(--accent-purple); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">Open Library Market</button>
+            </div>
+        </div>
+
+        <!-- 2. LIBRARY MARKET VIEW -->
+        <div id="library-view" class="app-view" style="padding: 16px; display: none;">
+            <div class="card-creator" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <h3 style="font-size: 0.9rem; font-weight: bold; color: var(--text-main); margin-bottom: 8px;">Publish Note / Past Question</h3>
+                <input type="text" placeholder="Course Code (e.g. PEG 101)" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 10px; box-sizing: border-box;">
                 
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <label>Email Address</label>
-                    <input type="email" id="auth-email" placeholder="myname@gmail.com" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
-                </div>
-
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <label>Password</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
-                </div>
-
-                <button id="auth-action-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px; font-size: 0.75rem;">Sign In</button>
-
-                <div style="text-align: center; margin-top: 12px;">
-                    <a href="#" id="auth-toggle-mode" style="font-size: 0.75rem; color: var(--accent-blue); text-decoration: none;">Don't have an account? Register</a>
-                </div>
-            </div>
-        </div>
-
-        <        <div id="profile-view" class="app-view active">
-            <div class="card card-profile" style="text-align: center; padding: 20px;">
-                <div class="profile-avatar" id="avatar-initials" style="width: 60px; height: 60px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin: 0 auto 10px auto; font-size: 1.2rem;">JC</div>
-                <div class="display-name" id="display-name" style="font-size: 1rem; font-weight: bold; color: var(--text-main);">Cadet</div>
-                <p id="display-dept" style="font-size: 0.8rem; color: var(--text-muted); margin: 4px 0;">PTI Petroleum Engineering</p>
-                <p style="font-size: 0.8rem; color: var(--accent-green); margin-bottom: 12px;">Status: <span style="color: #22c55e;">Active Cadet</span></p>
+                <input type="file" id="file-upload" accept=".pdf" style="display: none;">
+                <label for="file-upload" style="display: block; text-align: center; background: rgba(255,255,255,0.05); border: 1px dashed var(--border-color); padding: 12px; border-radius: 8px; font-size: 0.75rem; color: var(--text-main); margin-bottom: 10px; cursor: pointer;">Choose PDF File</label>
                 
-                <div style="display: flex; gap: 8px; justify-content: center;">
-                    <button class="btn btn-outline" onclick="toggleEditProfile()" style="font-size: 0.75rem; padding: 6px 12px;">Edit Profile</button>
-                    <button class="btn btn-primary" onclick="signOutUser()" style="font-size: 0.75rem; padding: 6px 12px; background: #ef4444; border: none;">Sign Out</button>
+                <button class="btn btn-accent" style="width: 100%; background: var(--accent-purple); border: none; padding: 10px; border-radius: 8px; color: white; font-weight: bold; font-size: 0.75rem; cursor: pointer;">Publish Asset</button>
+            </div>
+
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px;">
+                <h3 style="font-size: 0.9rem; font-weight: bold; color: var(--text-main); margin-bottom: 8px;">Library Market</h3>
+                <div id="library-market-list">
+                    <p style="color: var(--text-muted); font-size: 0.75rem;">- No assets listed yet</p>
                 </div>
             </div>
         </div>
 
-
-        <!-- Library Tab View -->
-        <div id="library-view" class="app-view">
-            <div class="card card-creator">
-                <h3>Publish Note</h3>
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <label>Course Code</label>
-                    <input type="text" placeholder="e.g. GNS 102" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-top: 4px;">
+        <!-- 3. GRADEBOT AI CHAT VIEW -->
+        <div id="ai-view" class="app-view" style="display: none; flex-direction: column; height: 82vh; padding: 16px; box-sizing: border-box;">
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="font-size: 0.9rem; font-weight: bold; color: var(--text-main); margin: 0;">🤖 GradeBot AI</h3>
+                    <p style="font-size: 0.65rem; color: var(--text-muted); margin: 2px 0 0 0;">Ask anything, anytime.</p>
                 </div>
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <input type="file" id="file-upload" accept="image/*,.pdf" style="display: none;">
-                    <label for="file-upload" style="display: block; margin-top: 10px; background: rgb(255, 255, 255, 0.05); border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-size: 0.85rem;">Choose File</label>
-                </div>
-                <button id="publish-asset-btn" class="btn btn-accent" style="margin-top: 12px; width: 100%;">Publish Asset</button>
+                <span style="font-size: 0.65rem; background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 3px 8px; border-radius: 12px; font-weight: 600;">Online</span>
             </div>
-            <div class="card" style="margin-top: 15px">
-                <h3>Library Market</h3>
-                <div id="library-market-list" style="margin-top: 10px;">
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">- No assets listed yet</p>
+
+            <div id="gradebot-chat-container" style="flex: 1; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; max-width: 85%; align-self: flex-start;">
+                    <p style="font-size: 0.75rem; color: var(--text-main); margin: 0; line-height: 1.4;">Hello Cadet! Ask me any academic question or engineering concept.</p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 6px;">
+                <input type="text" id="gradebot-input" placeholder="Ask GradeBot anything..." style="flex: 1; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 8px; font-size: 0.75rem; outline: none;">
+                <button onclick="sendGradeBotMessage()" class="btn btn-primary" style="background: var(--accent-purple); border: none; padding: 0 16px; border-radius: 8px; font-size: 0.75rem; color: white; cursor: pointer;">Send</button>
+            </div>
+        </div>
+
+        <!-- 4. COMMUNITY VIEW -->
+        <div id="community-view" class="app-view" style="padding: 16px; display: none;">
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <h3 style="font-size: 0.9rem; font-weight: bold; color: var(--text-main); margin-bottom: 4px;">💬 Cadet Community</h3>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px;">Student posts, exam tips, and updates.</p>
+                <textarea id="community-post-input" placeholder="What do you want to share?" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 8px; font-size: 0.75rem; resize: none; height: 60px; box-sizing: border-box; margin-bottom: 8px;"></textarea>
+                <button onclick="publishCommunityPost()" class="btn btn-primary" style="width: 100%; background: var(--accent-purple); border: none; font-size: 0.75rem; padding: 8px; color: white; cursor: pointer;">Post to Community</button>
+            </div>
+            <div id="community-feed-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">Loading community feed...</p>
+            </div>
+        </div>
+
+        <!-- 5. CADETS DIRECTORY VIEW -->
+        <div id="cadets-view" class="app-view" style="padding: 16px; display: none;">
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px;">
+                <h3 style="font-size: 0.9rem; font-weight: bold; color: var(--text-main); margin-bottom: 8px;">👥 Cadet Directory</h3>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 12px;">Connect with active students online.</p>
+                <div id="cadets-list" style="display: flex; flex-direction: column; gap: 6px;">
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Loading online cadets...</p>
                 </div>
             </div>
         </div>
 
-        <!-- Wallet Tab View -->
-        <div id="wallet-view" class="app-view">
-            <div class="card card-wallet">
-                <h3>My Wallet</h3>
-                <div class="balance-box" style="margin-top: 10px;">
-                    <span style="color: var(--text-muted);">Balance:</span>
-                    <h2 id="balance-h2">50GX</h2>
-                </div>
-                <div class="btn-row" style="display: flex; gap: 8px;">
-                    <button class="btn btn-primary" id="deposit-btn">Deposit</button>
-                    <button class="btn btn-outline" id="withdraw-btn">Withdraw</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Arena View -->
-        <div id="arena-view" class="app-view">
-            <div class="card" style="margin: 10px 0; background: rgb(255, 255, 255, 0.03); padding: 10px; border-radius: 8px;">
-                <p><strong>Arena Duels</strong></p>
-            </div>
-        </div>
-
-        <!-- AI Practice Tab View -->
-        <div id="ai-view" class="app-view">
-            <div class="card card-arena">
-                <h3>AI Practice</h3>
-                <select id="ai-library-select" style="width: 100%; background: #0f172a; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; font-size: 0.75rem;">
-                    <option value="" disabled selected>-- Select from Library Market --</option>
-                </select>
-                <button id="generate-ai-btn" class="btn btn-accent" style="width: 100%; margin-top: 10px;">Generate From Library</button>
-                <div id="ai-output-area" style="margin-top: 10px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Gateway CDN -->
-    <script src="https://js.paystack.co/v1/inline.js"></script>
-
-    <!-- Firebase App & Auth Compat CDNs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Firebase Firestore CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-    <!-- Main Script -->
-    <script src="script.js"></script>
+    </main>
 
     <!-- Bottom Navigation Bar -->
-    <nav class="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('profile')">Profile</button>
-        <button class="nav-item" onclick="switchTab('library')">Library</button>
-        <button class="nav-item" onclick="switchTab('wallet')">Wallet</button>
-        <button class="nav-item" onclick="switchTab('ai')">Ask AI</button>
-        <button class="nav-item" onclick="switchTab('arena')">Duels</button>
-        <button class="nav-item" onclick="switchTab('cadets')">Cadets</button>
+    <nav class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000;">
+        <button class="nav-item" onclick="switchTab('profile')" style="background: none; border: none; color: var(--text-main); font-size: 0.7rem; cursor: pointer;">Profile</button>
+        <button class="nav-item" onclick="switchTab('library')" style="background: none; border: none; color: var(--text-muted); font-size: 0.7rem; cursor: pointer;">Library</button>
+        <button class="nav-item" onclick="switchTab('ai')" style="background: none; border: none; color: var(--text-muted); font-size: 0.7rem; cursor: pointer;">GradeBot</button>
+        <button class="nav-item" onclick="switchTab('community')" style="background: none; border: none; color: var(--text-muted); font-size: 0.7rem; cursor: pointer;">Feed</button>
+        <button class="nav-item" onclick="switchTab('cadets')" style="background: none; border: none; color: var(--text-muted); font-size: 0.7rem; cursor: pointer;">Cadets</button>
     </nav>
 
+    <script src="script.js"></script>
 </body>
 </html>

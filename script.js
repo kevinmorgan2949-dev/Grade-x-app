@@ -12,301 +12,16 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-document.addEventListener('DOMContentLoaded', () => {
-    const libraryMarketList = document.getElementById('library-market-list');
-    const aiLibrarySelect = document.getElementById('ai-library-select');
-    const generateBtn = document.getElementById('generate-ai-btn');
-    const outputArea = document.getElementById('ai-output-area');
-
-    const publishBtn = document.querySelector('.card-creator .btn-accent') || document.querySelector('button[style*="background"]');
-    const courseInput = document.querySelector('.card-creator input[type="text"]');
-    const fileInput = document.getElementById('file-upload') || document.querySelector('input[type="file"]');
-
-    // Sync Library Market Items into the AI dropdown
-    function syncLibraryMarketToAI() {
-        if (!libraryMarketList) return;
-        const marketItems = libraryMarketList.querySelectorAll('.market-item');
-        
-        if (!aiLibrarySelect) return;
-        aiLibrarySelect.innerHTML = '<option value="" disabled selected>-- Select from Library Market --</option>';
-        
-        marketItems.forEach(item => {
-            const text = item.textContent.trim();
-            if (text !== "No assets listed yet" && !text.includes("Cloud Live") && text.includes("Download")) {
-                const exists = Array.from(aiLibrarySelect.options).some(opt => opt.value === text);
-                if (!exists) {
-                    const option = document.createElement('option');
-                    option.value = text;
-                    option.textContent = text;
-                    aiLibrarySelect.appendChild(option);
-                }
-            }
-        });
-    }
-
-    // Handle Publish Asset & Storage Upload
-    if (publishBtn) {
-        publishBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-
-            const courseCode = courseInput ? courseInput.value.trim() : '';
-            const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
-
-            if (!courseCode || !file) {
-                alert('Oga, please enter a course code or choose a PDF file first!');
-                return;
-            }
-
-            let filePublicUrl = '';
-            let assetTitle = courseCode + ' (' + file.name + ' - Untitled Asset)';
-
-            // Upload fallback or local storage simulation
-            try {
-                // Asset publishing simulation locally if storage bucket isn't configured yet
-                filePublicUrl = URL.createObjectURL(file);
-                
-                if (libraryMarketList) {
-                    if (libraryMarketList.classList.contains('empty-state')) {
-                        libraryMarketList.classList.remove('empty-state');
-                        libraryMarketList.innerHTML = '';
-                    }
-
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'market-item';
-                    itemDiv.style.cssText = 'background: #0f172a; border: 1px solid var(--border-color); padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
-                    itemDiv.innerHTML = `
-                        <span style="color: var(--text-main); font-size: 0.8rem;">
-                            <strong>${assetTitle}</strong><br>
-                            <a href="${filePublicUrl}" target="_blank" style="font-size: 0.65rem; color: var(--accent-blue); text-decoration: underline;">Download / Read PDF</a>
-                        </span>
-                        <span style="color: var(--accent-green); font-size: 0.7rem;">Cloud Live</span>
-                    `;
-                    libraryMarketList.appendChild(itemDiv);
-                    syncLibraryMarketToAI();
-                }
-
-                alert('Asset uploaded & published successfully, Oga!');
-            } catch (err) {
-                console.error('Upload error:', err);
-                alert('Could not upload file, but saved locally.');
-            }
-        });
-    }
-
-    // AI Generation Trigger using Firebase / Backend
-    if (generateBtn) {
-        generateBtn.addEventListener('click', async () => {
-            const selectedLib = aiLibrarySelect.value;
-
-            if (!selectedLib) {
-                outputArea.innerHTML = '<p style="color: #ef4444; font-size: 0.75rem;">Oga, please select a document from the library market first!</p>';
-                return;
-            }
-
-            outputArea.innerHTML = `
-                <div style="background: #0f172a; border: 1px dashed var(--accent-blue); border-radius: 8px; padding: 10px; text-align: center;">
-                    <p style="color: var(--accent-blue); font-size: 0.75rem; margin: 0;">⚡ Supabase/Firebase AI is analyzing <strong>${selectedLib}</strong>...</p>
-                </div>
-            `;
-
-            try {
-                // Simulate AI CBT generation response
-                setTimeout(() => {
-                    outputArea.innerHTML = `
-                        <div style="background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-top: 8px;">
-                            <div style="display: flex; justifyContent: space-between; align-items: center; margin-bottom: 6px;">
-                                <span style="font-size: 0.7rem; color: var(--accent-green); font-weight: bold;">⚡ Secure Generation</span>
-                                <span style="font-size: 0.65rem; color: var(--text-muted);">Gemini-1.5-flash</span>
-                            </div>
-                            <p style="font-size: 0.75rem; color: var(--text-main); white-space: pre-line; margin: 6px 0;">Generated 5 practice CBT questions from your document successfully!</p>
-                            <button id="launch-cbt-btn" class="btn btn-success btn-sm" style="width: 100%; margin-top: 8px; font-size: 0.75rem;">Launch CBT Exam</button>
-                        </div>
-                    `;
-                }, 1500);
-            } catch (error) {
-                console.error('AI Error:', error);
-                outputArea.innerHTML = `<p style="color: #ef4444; font-size: 0.75rem;">Could not connect to AI backend, Oga!</p>`;
-            }
-        });
-    }
-});
-
-// Payment Gateway Live Public Key
-const PAYMENT_PUBLIC_KEY = 'pk_live_2ed63e56fb89c4f4fa510846e3d496397fbc';
-
-document.addEventListener('DOMContentLoaded', () => {
-    const balanceH2 = document.getElementById('balance-h2');
-    const depositBtn = document.getElementById('deposit-btn');
-    const wthBtn = document.getElementById('withdraw-btn');
-
-    function getCurrentBalance() {
-        if (!balanceH2) return 100;
-        const text = balanceH2.textContent.replace(/[^0-9]/g, '');
-        return parseInt(text) || 100;
-    }
-
-    function updateBalance(newAmount) {
-        if (balanceH2) {
-            balanceH2.textContent = `${newAmount}GX`;
-        }
-    }
-
-    // Deposit Handler via Paystack
-    if (depositBtn) {
-        depositBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const amountStr = prompt('Enter amount to deposit (Naira):', '1000');
-            if (!amountStr) return;
-            const amount = parseFloat(amountStr);
-
-            if (isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount!');
-                return;
-            }
-
-            let handler = PaystackPop.setup({
-                key: PAYMENT_PUBLIC_KEY,
-                email: 'student@gradexarena.com',
-                amount: amount * 100,
-                currency: 'NGN',
-                callback: function(response) {
-                    alert('Deposit successful! Reference: ' + response.reference);
-                    const currentBal = getCurrentBalance();
-                    const addedGX = Math.floor(amount / 10);
-                    updateBalance(currentBal + addedGX);
-                },
-                onClose: function() {
-                    alert('Transaction window closed.');
-                }
-            });
-            handler.openIframe();
-        });
-    }
-
-    // Withdrawal Handler
-    if (wthBtn) {
-        wthBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const withdrawAmountStr = prompt('Enter amount of GX to withdraw:', '500');
-            if (!withdrawAmountStr) return;
-            const withdrawAmount = parseInt(withdrawAmountStr);
-
-            let currentBal = getCurrentBalance();
-
-            if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
-                alert('Please enter a valid withdrawal amount!');
-                return;
-            }
-
-            if (withdrawAmount > currentBal) {
-                alert(' insufficient balance in your wallet!');
-                return;
-            }
-
-            const bankAccount = prompt('Enter your 10-digit Bank Account Number:');
-            const bankName = prompt('Enter Bank Name (e.g. Access, Gtbank, Opay):');
-
-            if (!bankAccount || !bankName) {
-                alert('Bank details are required for withdrawal');
-                return;
-            }
-
-            updateBalance(currentBal - withdrawAmount);
-            alert(`Withdrawal request of ${withdrawAmount} GX to (${bankName} - ${bankAccount}) submitted successfully!`);
-        });
-    }
-});
-
-// Tab Switching Logic for 5 Views
+// Tab Switching Logic
 function switchTab(tabId) {
-    const views = document.querySelectorAll('.app-view');
-    views.forEach(view => view.classList.remove('active'));
+    document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(item => item.style.color = 'var(--text-muted)');
 
     const targetView = document.getElementById(tabId + '-view');
-    if (targetView) {
-        targetView.classList.add('active');
-    }
-
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => item.classList.remove('active'));
+    if (targetView) targetView.classList.add('active');
 }
 
-// Authentication & Session Logic with Firebase Auth
-let isLoginMode = true;
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Monitor Firebase Auth State
-    auth.onAuthStateChanged((user) => {
-        const authModal = document.getElementById('auth-modal');
-        if (user) {
-            if (authModal) authModal.style.display = 'none';
-            switchTab('profile');
-        } else {
-            if (authModal) authModal.style.display = 'flex';
-        }
-    });
-
-    // Toggle between Login and Registration modes
-    const toggleBtn = document.getElementById('auth-toggle-mode');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            isLoginMode = !isLoginMode;
-            const authTitle = document.getElementById('auth-title');
-            const authSubtitle = document.getElementById('auth-subtitle');
-            const authActionBtn = document.getElementById('auth-action-btn');
-
-            if (isLoginMode) {
-                authTitle.innerHTML = '<span style="color: var(--accent-yellow);">🔐</span> login';
-                authSubtitle.innerText = 'Sign in or create your account to sync your stats and wallet.';
-                authActionBtn.innerText = 'Sign In';
-                toggleBtn.innerText = "Don't have an account? Register";
-            } else {
-                authTitle.innerHTML = '<span style="color: var(--accent-yellow);">📝</span> Create Cadet Account';
-                authSubtitle.innerText = 'Register to start staking, dueling, and publishing notes.';
-                authActionBtn.innerText = 'Create Account & Send Verification';
-                toggleBtn.innerText = 'Already have an account? Sign In';
-            }
-        });
-    }
-
-    // Handle Sign In / Registration Execution
-    const actionBtn = document.getElementById('auth-action-btn');
-    if (actionBtn) {
-        actionBtn.addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
-
-            if (!email || !password) {
-                alert('Please enter both email and password.');
-                return;
-            }
-
-            if (isLoginMode) {
-                // Login Logic using Firebase
-                try {
-                    await auth.signInWithEmailAndPassword(email, password);
-                    alert('Welcome back, Cadet!');
-                    document.getElementById('auth-modal').style.display = 'none';
-                    switchTab('profile');
-                } catch (error) {
-                    alert('Login failed: ' + error.message);
-                }
-            } else {
-                // Registration Logic using Firebase
-                try {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                    alert('Account created successfully!');
-                    document.getElementById('auth-modal').style.display = 'none';
-                } catch (error) {
-                    alert('Registration failed: ' + error.message);
-                }
-            }
-        });
-    }
-});
-// Dynamic Profile Updater & Sign Out Handler
-// Monitor Firebase Auth State & Sync Profile / Online Status
+// Monitor Auth State & Sync Profile / Online Status
 auth.onAuthStateChanged(async (user) => {
     const authModal = document.getElementById('auth-modal');
     if (user) {
@@ -316,13 +31,9 @@ auth.onAuthStateChanged(async (user) => {
         const username = user.email.split('@')[0];
         const displayName = username.charAt(0).toUpperCase() + username.slice(1);
 
-        // Set dynamic cadet name and avatar
         const displayNameEl = document.getElementById('display-name');
-        const avatarEl = document.getElementById('avatar-initials');
         if (displayNameEl) displayNameEl.textContent = displayName;
-        if (avatarEl) avatarEl.textContent = username.substring(0, 2).toUpperCase();
 
-        // Save/Update user profile and set online to true in Firestore
         const userRef = db.collection('users').doc(user.uid);
         await userRef.set({
             uid: user.uid,
@@ -332,7 +43,6 @@ auth.onAuthStateChanged(async (user) => {
             lastSeen: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        // Set offline status when user leaves or closes window
         window.addEventListener('beforeunload', () => {
             userRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
         });
@@ -343,328 +53,241 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// Edit Profile Functionality
-function toggleEditProfile() {
-    const nameEl = document.getElementById('display-name');
-    const avatarEl = document.getElementById('avatar-initials');
-    const currentName = nameEl ? nameEl.textContent : 'Cadet';
-    
-    const newName = prompt('Enter your new display name:', currentName);
-    if (newName && newName.trim() !== '') {
-        nameEl.textContent = newName.trim();
-        
-        // Update initials dynamically
-        const parts = newName.trim().split(' ');
-        if (parts.length > 1 && avatarEl) {
-            avatarEl.textContent = (parts[0][0] + parts[1][0]).toUpperCase();
-        } else if (avatarEl) {
-            avatarEl.textContent = newName.trim().substring(0, 2).toUpperCase();
-        }
-        alert('Profile updated successfully, Oga!');
+// Auth Toggle & Execution
+let isLoginMode = true;
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('auth-toggle-mode');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerHTML = isLoginMode ? '<span style="color: var(--accent-yellow);">🔐</span> Login' : '<span style="color: var(--accent-yellow);">📝</span> Register';
+            document.getElementById('auth-action-btn').innerText = isLoginMode ? 'Sign In' : 'Create Account';
+            toggleBtn.innerText = isLoginMode ? "Don't have an account? Register" : 'Already have an account? Sign In';
+        });
     }
+
+    const actionBtn = document.getElementById('auth-action-btn');
+    if (actionBtn) {
+        actionBtn.addEventListener('click', async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            if (!email || !password) {
+                alert('Please enter email and password.');
+                return;
+            }
+            try {
+                if (isLoginMode) {
+                    await auth.signInWithEmailAndPassword(email, password);
+                } else {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                }
+                document.getElementById('auth-modal').style.display = 'none';
+            } catch (error) {
+                alert('Auth failed: ' + error.message);
+            }
+        });
+    }
+
+    loadLibraryMarket();
+    loadCommunityFeed();
+});
+
+// File Upload & Publish to Firestore (Persists on Refresh)
+const fileInput = document.getElementById('file-upload');
+const chooseFileLabel = document.querySelector('label[for="file-upload"]');
+if (fileInput && chooseFileLabel) {
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files[0]) {
+            chooseFileLabel.textContent = `Selected: ${fileInput.files[0].name}`;
+            chooseFileLabel.style.color = '#22c55e';
+        }
+    });
 }
 
-// Sign Out Functionality
-async function signOutUser() {
+const publishBtn = document.querySelector('.card-creator .btn-accent');
+const courseInput = document.querySelector('.card-creator input[type="text"]');
+
+if (publishBtn) {
+    publishBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const courseCode = courseInput ? courseInput.value.trim() : '';
+        const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
+        const currentUser = auth.currentUser;
+
+        if (!courseCode || !file) {
+            alert('Enter course code and choose a PDF file, Oga!');
+            return;
+        }
+
+        alert('Publishing asset to Firestore market...');
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async function () {
+            await db.collection('library_market').add({
+                courseCode: courseCode,
+                fileName: file.name,
+                fileData: reader.result,
+                publisherEmail: currentUser.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('Asset published successfully, Oga!');
+            courseInput.value = '';
+            chooseFileLabel.textContent = 'Choose PDF File';
+            chooseFileLabel.style.color = 'var(--text-main)';
+        };
+    });
+}
+
+// Load Library Market
+function loadLibraryMarket() {
+    const listEl = document.getElementById('library-market-list');
+    if (!listEl) return;
+
+    db.collection('library_market').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+        listEl.innerHTML = '';
+        if (snapshot.empty) {
+            listEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.75rem;">- No assets listed yet</p>';
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const item = doc.data();
+            const div = document.createElement('div');
+            div.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 10px; margin-bottom: 6px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
+            div.innerHTML = `
+                <span style="font-size: 0.75rem; color: var(--text-main);"><strong>${item.courseCode}</strong> (${item.fileName})<br><span style="font-size: 0.6rem; color: var(--text-muted);">By: ${item.publisherEmail}</span></span>
+                <div style="display: flex; gap: 4px;">
+                    <button onclick="readBookInApp('${encodeURIComponent(item.fileData)}', '${item.courseCode}')" style="background: var(--accent-purple); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; cursor: pointer;">Read</button>
+                    <a href="${item.fileData}" download="${item.fileName}" style="color: #38bdf8; font-size: 0.65rem; align-self: center;">Download</a>
+                </div>
+            `;
+            listEl.appendChild(div);
+        });
+    });
+}
+
+// In-App Reader Modal
+function readBookInApp(base64Data, title) {
+    let modal = document.getElementById('in-app-reader-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'in-app-reader-modal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 30000; display: flex; flex-direction: column; padding: 12px; box-sizing: border-box;';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="color: white; font-size: 0.85rem; margin: 0;">📖 ${title}</h3>
+            <button onclick="document.getElementById('in-app-reader-modal').style.display='none'" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; cursor: pointer;">Close</button>
+        </div>
+        <div style="flex: 1; background: white; border-radius: 6px; overflow: hidden;">
+            <iframe src="${decodeURIComponent(base64Data)}" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    `;
+    modal.style.display = 'flex';
+}
+
+// GradeBot AI Chat
+async function sendGradeBotMessage() {
+    const input = document.getElementById('gradebot-input');
+    const container = document.getElementById('gradebot-chat-container');
+    const msg = input ? input.value.trim() : '';
+    if (!msg) return;
+
+    const userBubble = document.createElement('div');
+    userBubble.style.cssText = 'background: var(--accent-purple); color: white; padding: 8px; border-radius: 6px; max-width: 85%; align-self: flex-end; font-size: 0.75rem;';
+    userBubble.textContent = msg;
+    container.appendChild(userBubble);
+    input.value = '';
+    container.scrollTop = container.scrollHeight;
+
     try {
-        await auth.signOut();
-        alert('Signed out successfully.');
-        const authModal = document.getElementById('auth-modal');
-        if (authModal) authModal.style.display = 'flex';
-    } catch (error) {
-        alert('Error signing out: ' + error.message);
+        const res = await fetch('https://ibolpsixuxoeorhwmhte.supabase.co/functions/v1/swift-task', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: msg })
+        });
+        const data = await res.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't answer that right now, Cadet.";
+
+        const botBubble = document.createElement('div');
+        botBubble.style.cssText = 'background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: 6px; max-width: 85%; align-self: flex-start; font-size: 0.75rem;';
+        botBubble.textContent = reply;
+        container.appendChild(botBubble);
+        container.scrollTop = container.scrollHeight;
+    } catch (err) {
+        alert('AI connection error.');
     }
 }
-// Load Cadets Directory
+
+// Community Feed
+async function publishCommunityPost() {
+    const input = document.getElementById('community-post-input');
+    const content = input ? input.value.trim() : '';
+    const user = auth.currentUser;
+    if (!content || !user) {
+        alert('Write something and ensure you are logged in, Oga!');
+        return;
+    }
+    await db.collection('community_posts').add({
+        author: user.email.split('@')[0],
+        content: content,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    input.value = '';
+    alert('Posted successfully!');
+}
+
+function loadCommunityFeed() {
+    const feed = document.getElementById('community-feed-list');
+    if (!feed) return;
+    db.collection('community_posts').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+        feed.innerHTML = '';
+        if (snapshot.empty) {
+            feed.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">No community posts yet.</p>';
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const p = doc.data();
+            const div = document.createElement('div');
+            div.style.cssText = 'background: var(--card-bg); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;';
+            div.innerHTML = `<strong style="font-size: 0.75rem; color: var(--accent-purple);">${p.author}</strong><p style="font-size: 0.75rem; color: var(--text-main); margin: 4px 0 0 0;">${p.content}</p>`;
+            feed.appendChild(div);
+        });
+    });
+}
+
+// Cadets Directory
 function loadCadetsDirectory(currentUserId) {
-    const cadetsListEl = document.getElementById('cadets-list');
-    if (!cadetsListEl) return;
-
+    const list = document.getElementById('cadets-list');
+    if (!list) return;
     db.collection('users').onSnapshot((snapshot) => {
-        cadetsListEl.innerHTML = '';
-        
-        if (snapshot.empty) {
-            cadetsListEl.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted);">No other cadets found.</p>';
-            return;
-        }
-
+        list.innerHTML = '';
         snapshot.forEach((doc) => {
-            const cadet = doc.data();
-            if (cadet.uid === currentUserId) return;
-
-            const isOnline = cadet.online;
-            const statusColor = isOnline ? '#22c55e' : '#64748b';
-            const statusText = isOnline ? 'Online' : 'Offline';
-
-            const cadetCard = document.createElement('div');
-            cadetCard.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;';
-            cadetCard.innerHTML = `
-                <div>
-                    <strong style="font-size: 0.8rem; color: var(--text-main);">${cadet.displayName}</strong><br>
-                    <span style="font-size: 0.65rem; color: ${statusColor};">● ${statusText}</span>
-                </div>
-                <button onclick="addFriend('${cadet.uid}', '${cadet.displayName}')" class="btn btn-outline" style="font-size: 0.7rem; padding: 4px 8px;">Add Friend</button>
-            `;
-            cadetsListEl.appendChild(cadetCard);
+            const user = doc.data();
+            if (user.uid === currentUserId) return;
+            const div = document.createElement('div');
+            div.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
+            div.innerHTML = `<span style="font-size: 0.75rem;">${user.displayName} <br><span style="font-size: 0.6rem; color: ${user.online ? '#22c55e' : '#64748b'};">● ${user.online ? 'Online' : 'Offline'}</span></span><button onclick="alert('Friend request sent!')" style="font-size: 0.65rem; padding: 4px 8px;">Add</button>`;
+            list.appendChild(div);
         });
     });
 }
 
-// Add Friend Action
-function addFriend(friendUid, friendName) {
-    alert(`Friend request sent to ${friendName}, Oga!`);
-}
-// 1. Show selected filename instantly on choose file button
-const fileInput = document.getElementById('file-upload') || document.querySelector('input[type="file"]');
-const chooseFileLabel = document.querySelector('label[for="file-upload"]');
-if (fileInput && chooseFileLabel) {
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files && fileInput.files[0]) {
-            chooseFileLabel.textContent = `Selected: ${fileInput.files[0].name}`;
-            chooseFileLabel.style.color = '#22c55e';
-        }
-    });
+// Profile & Signout Helpers
+function toggleEditProfile() {
+    const name = prompt('Enter new display name:');
+    if (name) document.getElementById('display-name').textContent = name;
 }
 
-// 2. Handle Publish Asset & Save Permanently to Firestore
-const publishBtn = document.querySelector('.card-creator .btn-accent') || document.querySelector('button[style*="background"]');
-const courseInput = document.querySelector('.card-creator input[type="text"]');
-
-if (publishBtn) {
-    publishBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-
-        const courseCode = courseInput ? courseInput.value.trim() : '';
-        const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
-        const currentUser = auth.currentUser;
-
-        if (!courseCode || !file) {
-            alert('Oga, please enter a course code and choose a PDF file first!');
-            return;
-        }
-
-        if (!currentUser) {
-            alert('Oga, you must be signed in to publish assets!');
-            return;
-        }
-
-        alert('Uploading asset to Firestore database...');
-
-        try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async function () {
-                const base64File = reader.result;
-
-                // Save to Firestore so it persists permanently on refresh
-                await db.collection('library_market').add({
-                    courseCode: courseCode,
-                    fileName: file.name,
-                    fileData: base64File,
-                    publisherEmail: currentUser.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                alert('Asset published & saved to market successfully, Oga!');
-                if (courseInput) courseInput.value = '';
-                if (chooseFileLabel) {
-                    chooseFileLabel.textContent = 'Choose File';
-                    chooseFileLabel.style.color = 'var(--text-main)';
-                }
-            };
-        } catch (err) {
-            console.error('Publish error:', err);
-            alert('Could not publish asset: ' + err.message);
-        }
-    });
+async function signOutUser() {
+    await auth.signOut();
+    location.reload();
 }
-
-// 3. Load Library Market Notes from Firestore (Persists on Refresh)
-function loadLibraryMarket() {
-    const libraryMarketList = document.getElementById('library-market-list');
-    if (!libraryMarketList) return;
-
-    db.collection('library_market').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-        libraryMarketList.innerHTML = '';
-
-        if (snapshot.empty) {
-            libraryMarketList.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">- No assets listed yet</p>';
-            return;
-        }
-
-        snapshot.forEach((doc) => {
-            const item = doc.data();
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'market-item';
-            itemDiv.style.cssText = 'background: #0f172a; border: 1px solid var(--border-color); padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
-            
-            itemDiv.innerHTML = `
-                <span style="color: var(--text-main); font-size: 0.8rem;">
-                    <strong>${item.courseCode} (${item.fileName})</strong><br>
-                    <span style="font-size: 0.65rem; color: var(--text-muted);">By: ${item.publisherEmail}</span>
-                </span>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                    <button onclick="readBookInApp('${encodeURIComponent(item.fileData)}', '${item.courseCode}')" class="btn btn-primary" style="font-size: 0.65rem; padding: 4px 8px; background: var(--accent-blue, #6366f1); border: none; color: white; cursor: pointer;">Read</button>
-                    <a href="${item.fileData}" download="${item.fileName}" style="font-size: 0.65rem; color: #38bdf8; text-decoration: underline;">Download</a>
-                </div>
-            `;
-            libraryMarketList.appendChild(itemDiv);
-        });
-    });
-}
-
-// 4. In-App Book Reader Modal (Prevents unwanted downloads when clicking Read)
-function readBookInApp(base64Data, title) {
-    const decodedData = decodeURIComponent(base64Data);
-    
-    let readerModal = document.getElementById('in-app-reader-modal');
-    if (!readerModal) {
-        readerModal = document.createElement('div');
-        readerModal.id = 'in-app-reader-modal';
-        readerModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box;';
-        document.body.appendChild(readerModal);
+// Toggle Slide-Out Sidebar Drawer
+function toggleSidebar() {
+    const drawer = document.getElementById('sidebar-drawer');
+    if (drawer) {
+        drawer.style.left = drawer.style.left === '0px' ? '-280px' : '0px';
     }
-
-    readerModal.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="color: white; font-size: 0.9rem; margin: 0;">📖 Reading: ${title}</h3>
-            <button onclick="document.getElementById('in-app-reader-modal').style.display='none'" style="font-size: 0.7rem; padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Close Reader</button>
-        </div>
-        <div style="flex: 1; background: white; border-radius: 8px; overflow: hidden; width: 100%;">
-            <iframe src="${decodedData}" style="width: 100%; height: 100%; border: none;"></iframe>
-        </div>
-    `;
-    readerModal.style.display = 'flex';
 }
-
-// Auto-load market notes when page starts
-document.addEventListener('DOMContentLoaded', () => {
-    loadLibraryMarket();
-});
-// 1. Show selected filename instantly on choose file button
-const fileInput = document.getElementById('file-upload') || document.querySelector('input[type="file"]');
-const chooseFileLabel = document.querySelector('label[for="file-upload"]');
-if (fileInput && chooseFileLabel) {
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files && fileInput.files[0]) {
-            chooseFileLabel.textContent = `Selected: ${fileInput.files[0].name}`;
-            chooseFileLabel.style.color = '#22c55e';
-        }
-    });
-}
-
-// 2. Handle Publish Asset & Save Permanently to Firestore
-const publishBtn = document.querySelector('.card-creator .btn-accent') || document.querySelector('button[style*="background"]');
-const courseInput = document.querySelector('.card-creator input[type="text"]');
-
-if (publishBtn) {
-    publishBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-
-        const courseCode = courseInput ? courseInput.value.trim() : '';
-        const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
-        const currentUser = auth.currentUser;
-
-        if (!courseCode || !file) {
-            alert('Oga, please enter a course code and choose a PDF file first!');
-            return;
-        }
-
-        if (!currentUser) {
-            alert('Oga, you must be signed in to publish assets!');
-            return;
-        }
-
-        alert('Uploading asset to Firestore database...');
-
-        try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async function () {
-                const base64File = reader.result;
-
-                // Save to Firestore so it persists permanently on refresh
-                await db.collection('library_market').add({
-                    courseCode: courseCode,
-                    fileName: file.name,
-                    fileData: base64File,
-                    publisherEmail: currentUser.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                alert('Asset published & saved to market successfully, Oga!');
-                if (courseInput) courseInput.value = '';
-                if (chooseFileLabel) {
-                    chooseFileLabel.textContent = 'Choose File';
-                    chooseFileLabel.style.color = 'var(--text-main)';
-                }
-            };
-        } catch (err) {
-            console.error('Publish error:', err);
-            alert('Could not publish asset: ' + err.message);
-        }
-    });
-}
-
-// 3. Load Library Market Notes from Firestore (Persists on Refresh)
-function loadLibraryMarket() {
-    const libraryMarketList = document.getElementById('library-market-list');
-    if (!libraryMarketList) return;
-
-    db.collection('library_market').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-        libraryMarketList.innerHTML = '';
-
-        if (snapshot.empty) {
-            libraryMarketList.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">- No assets listed yet</p>';
-            return;
-        }
-
-        snapshot.forEach((doc) => {
-            const item = doc.data();
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'market-item';
-            itemDiv.style.cssText = 'background: #0f172a; border: 1px solid var(--border-color); padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
-            
-            itemDiv.innerHTML = `
-                <span style="color: var(--text-main); font-size: 0.8rem;">
-                    <strong>${item.courseCode} (${item.fileName})</strong><br>
-                    <span style="font-size: 0.65rem; color: var(--text-muted);">By: ${item.publisherEmail}</span>
-                </span>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                    <button onclick="readBookInApp('${encodeURIComponent(item.fileData)}', '${item.courseCode}')" class="btn btn-primary" style="font-size: 0.65rem; padding: 4px 8px; background: var(--accent-blue, #6366f1); border: none; color: white; cursor: pointer;">Read</button>
-                    <a href="${item.fileData}" download="${item.fileName}" style="font-size: 0.65rem; color: #38bdf8; text-decoration: underline;">Download</a>
-                </div>
-            `;
-            libraryMarketList.appendChild(itemDiv);
-        });
-    });
-}
-
-// 4. In-App Book Reader Modal (Prevents unwanted downloads when clicking Read)
-function readBookInApp(base64Data, title) {
-    const decodedData = decodeURIComponent(base64Data);
-    
-    let readerModal = document.getElementById('in-app-reader-modal');
-    if (!readerModal) {
-        readerModal = document.createElement('div');
-        readerModal.id = 'in-app-reader-modal';
-        readerModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box;';
-        document.body.appendChild(readerModal);
-    }
-
-    readerModal.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="color: white; font-size: 0.9rem; margin: 0;">📖 Reading: ${title}</h3>
-            <button onclick="document.getElementById('in-app-reader-modal').style.display='none'" style="font-size: 0.7rem; padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Close Reader</button>
-        </div>
-        <div style="flex: 1; background: white; border-radius: 8px; overflow: hidden; width: 100%;">
-            <iframe src="${decodedData}" style="width: 100%; height: 100%; border: none;"></iframe>
-        </div>
-    `;
-    readerModal.style.display = 'flex';
-}
-
-// Auto-load market notes when page starts
-document.addEventListener('DOMContentLoaded', () => {
-    loadLibraryMarket();
-});
