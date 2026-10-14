@@ -1,143 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GradeX Arena</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Paystack Checkout Script -->
-  <script src="https://js.paystack.co/v1/inline.js"></script>
-  <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#100d24">
+
+    <title>GRADE X — Small Arena</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased h-screen flex flex-col overflow-hidden select-none">
 
-  <!-- APP HEADER -->
-  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex justify-between items-center z-40 shrink-0">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-indigo-500/30">G</div>
-      <div>
-        <div class="flex items-center gap-1.5">
-          <span class="text-base font-black tracking-tight text-white">Grade X</span>
-          <span class="text-[10px] font-bold uppercase tracking-widest bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded">Arena</span>
+<body>
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">X</div>
+            <div>
+                <h1>GRADE <span>X</span></h1>
+                <p>YOUR KNOWLEDGE. YOUR POWER.</p>
+            </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- Wallet Widget Pill -->
-    <div onclick="switchTab('wallet')" class="bg-slate-800/90 border border-slate-700/60 px-3 py-1.5 rounded-full flex items-center gap-2 cursor-pointer active:scale-95 transition shadow-sm">
-      <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-      <span id="userWallet" class="text-xs font-bold text-emerald-400">₦0.00</span>
-      <span class="bg-emerald-600/20 text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">+</span>
-    </div>
-  </header>
 
-  <!-- MAIN SCROLLABLE APP CONTAINER -->
-  <main id="appMainContainer" class="flex-1 overflow-y-auto no-scrollbar pb-28 pt-3 px-4 max-w-lg mx-auto w-full">
-    
-    <!-- TAB 1: LIBRARY -->
-    <div id="tab-library" class="tab-content space-y-4">
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-xl font-black text-white tracking-tight">Study Library</h1>
-          <p class="text-xs text-slate-400">Read notes & explore study docs</p>
-        </div>
-        <input type="file" id="pdfUploadInput" accept="application/pdf" class="hidden" onchange="handleDocumentUpload(event)">
-        <button onclick="document.getElementById('pdfUploadInput').click()" class="bg-indigo-600 hover:bg-indigo-500 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-lg shadow-indigo-600/30 text-white">+ Upload</button>
-      </div>
-      <div id="activeReaderCard" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
-        <div class="flex justify-between items-center mb-3">
-          <span id="activeDocTitle" class="text-sm font-bold text-indigo-400 truncate max-w-[200px]">Reading Document</span>
-          <button onclick="closeReader()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">Close ✕</button>
-        </div>
-        <div class="bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-[350px] relative">
-          <iframe id="pdfFrame" class="w-full h-full"></iframe>
-        </div>
-      </div>
-      <div class="space-y-3" id="documentsList">
-        <div class="glass-panel p-6 rounded-2xl text-center text-slate-400 text-xs">Loading study materials...</div>
-      </div>
-    </div>
+        <button id="menuBtn" class="menu-btn">☰</button>
+    </header>
 
-    <!-- TAB 2: ARENA -->
-    <div id="tab-arena" class="tab-content hidden space-y-4">
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-xl font-black text-white tracking-tight">Arena Battle</h1>
-          <p class="text-xs text-slate-400">Stake funds, defeat opponents, take the pot</p>
-        </div>
-        <button onclick="openCreateMatchModal()" class="bg-emerald-600 hover:bg-emerald-500 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-lg shadow-emerald-600/30 text-white">⚔️ Create Match</button>
-      </div>
-      <div class="space-y-3" id="arenaRoomsGrid">
-        <div class="glass-panel p-6 rounded-2xl text-center text-slate-400 text-xs">Searching for active match rooms...</div>
-      </div>
-    </div>
+    <main>
 
-    <!-- TAB 3: AI ASSISTANT -->
-    <div id="tab-ai" class="tab-content hidden flex flex-col h-[calc(100vh-140px)]">
-      <div class="mb-3">
-        <h1 class="text-xl font-black text-white tracking-tight">AI Companion</h1>
-        <p class="text-xs text-slate-400">Contextual answers for Petroleum Engineering & notes</p>
-      </div>
-      <div id="aiChatHistory" class="flex-1 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 overflow-y-auto space-y-3 text-xs text-slate-300 mb-3">
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-400">Hello! Ask me any question regarding your studies or notes.</div>
-      </div>
-      <div class="flex gap-2 shrink-0">
-        <input type="text" id="aiQueryInput" placeholder="Ask AI assistant..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
-        <button onclick="askAIAssistant()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-3 rounded-xl text-xs font-bold transition text-white">Send</button>
-      </div>
-    </div>
+        <section id="authSection" class="auth-section">
+            <div class="hero">
+                <span class="badge">WELCOME TO THE ARENA</span>
+                <h2>Your Classroom.<br><span>Your Rules.</span></h2>
+                <p>Read, learn, compete and grow with GRADE X.</p>
+            </div>
 
-    <!-- TAB 4: WALLET -->
-    <div id="tab-wallet" class="tab-content hidden space-y-4">
-      <div>
-        <h1 class="text-xl font-black text-white tracking-tight">Wallet & Finances</h1>
-        <p class="text-xs text-slate-400">Manage earnings, fund wallet & withdraw</p>
-      </div>
-      <div class="glass-panel p-5 rounded-2xl shadow-xl text-center space-y-3">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Available Balance</p>
-        <p id="walletDisplayLarge" class="text-3xl font-black text-emerald-400">₦0.00</p>
-        <div class="grid grid-cols-2 gap-3 pt-2">
-          <button onclick="fundWalletPrompt()" class="bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl text-xs font-bold transition text-white">+ Fund Wallet</button>
-          <button onclick="requestAutomatedWithdrawal()" class="bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-bold transition text-slate-200 border border-slate-700">Withdraw</button>
-        </div>
-      </div>
-    </div>
+            <div class="auth-card">
+                <h2 id="authTitle">Join GRADE X</h2>
+                <p id="authMessage">Create your student account to get started.</p>
 
-  </main>
+                <form id="authForm">
+                    <label for="email">Email address</label>
+                    <input id="email" type="email"
+                           placeholder="you@example.com" required>
 
-  <!-- NATIVE BOTTOM MOBILE NAVIGATION BAR -->
-  <nav class="absolute bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800/80 px-4 py-2.5 flex justify-around items-center z-50">
-    <button onclick="switchTab('library')" id="nav-btn-library" class="nav-item flex flex-col items-center gap-1 text-indigo-400 transition">
-      <span class="text-[10px] font-bold">Library</span>
-    </button>
-    <button onclick="switchTab('arena')" id="nav-btn-arena" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-      <span class="text-[10px] font-medium">Arena</span>
-    </button>
-    <button onclick="switchTab('ai')" id="nav-btn-ai" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-      <span class="text-[10px] font-medium">AI Assist</span>
-    </button>
-    <button onclick="switchTab('wallet')" id="nav-btn-wallet" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-      <span class="text-[10px] font-medium">Wallet</span>
-    </button>
-  </nav>
+                    <label for="password">Password</label>
+                    <input id="password" type="password"
+                           placeholder="At least 6 characters"
+                           minlength="6" required>
 
-  <!-- AUTHENTICATION MODAL (Starts visible so it pops up immediately) -->
-  <div id="authModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-      <h2 id="authTitle" class="text-xl font-black text-white text-center">GradeX Arena Sign In</h2>
-      <p id="authSubtitle" class="text-xs text-slate-400 text-center">Enter your student account credentials</p>
-      <input type="email" id="authEmail" placeholder="student@pti.edu.ng" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
-      <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
-      <button id="authActionBtn" onclick="handleAuthSubmit()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl text-xs font-bold text-white transition">Sign In</button>
-      <p onclick="toggleAuthMode()" id="authToggleText" class="text-[11px] text-center text-indigo-400 cursor-pointer hover:underline">Don't have an account? Sign up</p>
-    </div>
-  </div>
+                    <button id="authSubmit" type="submit" class="primary-btn">
+                        Create Account
+                    </button>
+                </form>
 
-  <!-- LINKED EXTERNAL SCRIPT -->
-  <script src="script.js"></script>
+                <p id="authStatus" class="status-message"></p>
+
+                <button id="authToggle" class="text-btn">
+                    Already have an account? Sign in
+                </button>
+            </div>
+        </section>
+
+        <section id="appSection" hidden>
+
+            <section class="welcome-card">
+                <div>
+                    <span class="badge">YOUR LEARNING SPACE</span>
+                    <h2>Welcome, <span id="studentEmail">Student</span>!</h2>
+                    <p>Knowledge is your greatest investment.</p>
+                </div>
+            </section>
+
+            <nav class="main-nav">
+                <button class="nav-btn active" data-page="library">📚 Library</button>
+                <button class="nav-btn" data-page="bot">🤖 Grade Bot</button>
+                <button class="nav-btn" data-page="arena">🏆 Arena</button>
+                <button class="nav-btn" data-page="wallet">💰 Wallet</button>
+            </nav>
+
+            <!-- LIBRARY -->
+            <section id="libraryPage" class="page">
+                <div class="section-heading">
+                    <div>
+                        <h2>Grade X Library</h2>
+                        <p>Discover and share learning materials.</p>
+                    </div>
+                </div>
+
+                <div class="upload-card">
+                    <h3>📤 Upload a PDF</h3>
+                    <p>Share useful notes, textbooks and study materials.</p>
+
+                    <form id="uploadForm">
+                        <label for="pdfTitle">Document title</label>
+                        <input id="pdfTitle" type="text"
+                               placeholder="e.g. Introduction to Physics"
+                               required>
+
+                        <label for="pdfSubject">Subject</label>
+                        <select id="pdfSubject" required>
+                            <option value="">Choose a subject</option>
+                            <option>Mathematics</option>
+                            <option>Physics</option>
+                            <option>Chemistry</option>
+                            <option>Biology</option>
+                            <option>English</option>
+                            <option>Petroleum Engineering</option>
+                            <option>Computer Science</option>
+                            <option>Other</option>
+                        </select>
+
+                        <label for="pdfDescription">Description</label>
+                        <textarea id="pdfDescription"
+                                  placeholder="What will students learn from this document?"></textarea>
+
+                        <label for="pdfFile">Choose PDF file</label>
+                        <input id="pdfFile" type="file"
+                               accept="application/pdf,.pdf" required>
+
+                        <button id="uploadBtn" type="submit" class="primary-btn">
+                            Upload to Library
+                        </button>
+                    </form>
+
+                    <p id="uploadStatus" class="status-message"></p>
+                </div>
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Explore Materials</h2>
+                        <p>Study resources shared by students.</p>
+                    </div>
+                </div>
+
+                <input id="searchPDF" type="search"
+                       placeholder="🔎 Search documents or subjects...">
+
+                <div id="pdfList" class="pdf-list">
+                    <div class="empty-state">
+                        <span>📚</span>
+                        <h3>Your library starts here</h3>
+                        <p>Documents uploaded to the cloud will appear here.</p>
+                    </div>
+                </div>
+
+                <div id="pdfReader" class="reader-card" hidden>
+                    <div class="reader-heading">
+                        <h3 id="readerTitle">Document Reader</h3>
+                        <button id="closeReader" class="secondary-btn">
+                            Close
+                        </button>
+                    </div>
+
+                    <div id="readerPages"></div>
+                </div>
+            </section>
+
+            <!-- GRADE BOT -->
+            <section id="botPage" class="page" hidden>
+                <div class="section-heading">
+                    <div>
+                        <h2>GRADE BOT</h2>
+                        <p>Your personal AI study assistant.</p>
+                    </div>
+                </div>
+
+                <div class="bot-card">
+                    <div class="bot-avatar">🤖</div>
+                    <h3>Meet Grade Bot</h3>
+                    <p>Ask questions, explore concepts and get help with your studies.</p>
+
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="bot-message">
+                            Hey student! 👋 I'm Grade Bot. What are we learning today?
+                        </div>
+                    </div>
+
+                    <form id="chatForm" class="chat-form">
+                        <input id="chatInput" type="text"
+                               placeholder="Ask a study question..."
+                               required>
+                        <button type="submit">➤</button>
+                    </form>
+
+                    <p class="small-note">
+                        AI responses will be enabled when we connect the secure AI service.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ARENA -->
+            <section id="arenaPage" class="page" hidden>
+                <div class="section-heading">
+                    <div>
+                        <h2>Small Arena</h2>
+                        <p>Test your knowledge and improve your skills.</p>
+                    </div>
+                </div>
+
+                <div class="arena-card">
+                    <span class="arena-icon">🏆</span>
+                    <h3>Knowledge Challenge</h3>
+                    <p>Answer questions, track your score and challenge yourself.</p>
+                    <div class="arena-stats">
+                        <div>
+                            <strong>FREE</strong>
+                            <span>Practice mode</span>
+                        </div>
+                        <div>
+                            <strong>10</strong>
+                            <span>Questions</span>
+                        </div>
+                    </div>
+                    <button id="startQuiz" class="primary-btn">
+                        Start Practice Quiz
+                    </button>
+                </div>
+
+                <div id="quizArea" class="quiz-card" hidden>
+                    <div id="quizProgress"></div>
+                    <h3 id="quizQuestion"></h3>
+                    <div id="quizOptions"></div>
+                    <p id="quizFeedback"></p>
+                    <button id="nextQuestion" class="primary-btn" hidden>
+                        Next Question
+                    </button>
+                </div>
+
+                <p class="small-note">
+                    Practice mode is free. Paid competitions and real-money
+                    rewards are not enabled.
+                </p>
+            </section>
+
+            <!-- WALLET -->
+            <section id="walletPage" class="page" hidden>
+                <div class="section-heading">
+                    <div>
+                        <h2>Grade X Wallet</h2>
+                        <p>Your account and rewards dashboard.</p>
+                    </div>
+                </div>
+
+                <div class="wallet-card">
+                    <p>DEMO BALANCE</p>
+                    <h2>₦0.00</h2>
+                    <span>Real-money transactions are not enabled.</span>
+                </div>
+
+                <div class="wallet-actions">
+                    <button class="secondary-btn" disabled>
+                        + Deposit
+                    </button>
+                    <button class="secondary-btn" disabled>
+                        Withdraw
+                    </button>
+                </div>
+
+                <div class="notice-card">
+                    <h3>💡 Coming Soon</h3>
+                    <p>
+                        Secure deposits, eligible reading rewards and
+                        withdrawals will require verified payment and
+                        anti-fraud systems.
+                    </p>
+                </div>
+            </section>
+
+            <button id="signOutBtn" class="signout-btn">
+                Sign Out
+            </button>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>GRADE X — SMALL ARENA</p>
+        <p>Learn smarter. Rise higher. 🚀</p>
+    </footer>
+
+    <script src="app.js"></script>
+
 </body>
 </html>
