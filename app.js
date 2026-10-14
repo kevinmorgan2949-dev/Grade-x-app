@@ -700,9 +700,7 @@ chatForm.addEventListener("submit", async function(event) {
     
     try {
         // Send the question to your Supabase Edge Function
-        const { data, error } = await db.functions.invoke(
-            "grade-bot",
-            {
+        const { data, error } = await db.functions.invoke("dynamic-function", {
                 body: {
                     question: question
                 }
