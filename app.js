@@ -672,31 +672,72 @@ const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const chatMessages = document.getElementById("chatMessages");
 
-chatForm.addEventListener("submit", function (event) {
+chatForm.addEventListener("submit", async function(event) {
     event.preventDefault();
-
+    
     const question = chatInput.value.trim();
-
+    
     if (!question) return;
-
+    
+    // Display the student's message
     const userMessage = document.createElement("div");
     userMessage.className = "user-message";
     userMessage.textContent = question;
-
+    
     chatMessages.appendChild(userMessage);
-
+    
+    // Display a temporary loading message
     const botMessage = document.createElement("div");
     botMessage.className = "bot-message";
-    botMessage.textContent =
-        "Your question has been received! The secure AI connection still needs to be configured before I can generate an answer.";
-
+    botMessage.textContent = "GRADE BOT is thinking... 🤖";
+    
     chatMessages.appendChild(botMessage);
-
+    
     chatInput.value = "";
-
+    chatInput.disabled = true;
+    
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    try {
+        // Send the question to your Supabase Edge Function
+        const { data, error } = await db.functions.invoke(
+            "grade-bot",
+            {
+                body: {
+                    question: question
+                }
+            }
+        );
+        
+        if (error) {
+            console.error("GRADE BOT connection error:", error);
+            throw new Error(
+                "Couldn't connect to GRADE BOT. Please try again."
+            );
+        }
+        
+        if (!data || !data.answer) {
+            throw new Error(
+                data?.error || "GRADE BOT returned no answer."
+            );
+        }
+        
+        // Display the real AI answer
+        botMessage.textContent = data.answer;
+        
+    } catch (error) {
+        console.error("GRADE BOT error:", error);
+        
+        botMessage.textContent =
+            error.message ||
+            "GRADE BOT couldn't respond. Please try again.";
+    } finally {
+        chatInput.disabled = false;
+        chatInput.focus();
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 });
-
 
 // ============================================
 // 14. SMALL ARENA — FREE PRACTICE QUIZ
