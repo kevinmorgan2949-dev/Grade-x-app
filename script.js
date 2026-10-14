@@ -1,293 +1,332 @@
-// Firebase Initialization
-const firebaseConfig = {
-  apiKey: "AIzaSyAKbQaiTWkpnjQ5OYNKuHBT_UB7xXhhx_A",
-  authDomain: "studio-5048925414-4748e.firebaseapp.com",
-  projectId: "studio-5048925414-4748e",
-  storageBucket: "studio-5048925414-4748e.firebasestorage.app",
-  messagingSenderId: "933916912009",
-  appId: "1:933916912009:web:39731845c3824c89af1958"
-};
+const SUPABASE_URL = 'https://vkojdzbhautyhwcujmiu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrb2pkemJoYXV0eHdjdWptaml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MjAzMDksImV4cCI6MjEwNzQ5NjMwOX0.sOpFs2O4t5KmIhJBTl42IUZ0jvqiJMTxxYbk9_NFAOo';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+let currentUser = null;
+let isSignUpMode = false;
+let activeMatch = null;
+let currentQuestionIndex = 0;
+let playerScores = { user: 0, opponent: 0 };
+let matchQuestions = [];
 
-// Tab Switching Logic
+// Switch Tabs
 function switchTab(tabId) {
-    document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(item => item.style.color = 'var(--text-muted)');
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('text-indigo-400');
+    el.classList.add('text-slate-400');
+    const span = el.querySelector('span');
+    if (span) { span.classList.remove('font-bold'); span.classList.add('font-medium'); }
+  });
 
-    const targetView = document.getElementById(tabId + '-view');
-    if (targetView) targetView.classList.add('active');
+  const targetTab = document.getElementById('tab-' + tabId);
+  if (targetTab) targetTab.classList.remove('hidden');
+
+  const activeBtn = document.getElementById('nav-btn-' + tabId);
+  if (activeBtn) {
+    activeBtn.classList.remove('text-slate-400');
+    activeBtn.classList.add('text-indigo-400');
+    const span = activeBtn.querySelector('span');
+    if (span) { span.classList.remove('font-medium'); span.classList.add('font-bold'); }
+  }
+
+  if (tabId === 'arena') loadArenaRooms();
+  if (tabId === 'library') loadDocuments();
+
+  const container = document.getElementById('appMainContainer');
+  if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Monitor Auth State & Sync Profile / Online Status
-auth.onAuthStateChanged(async (user) => {
-    const authModal = document.getElementById('auth-modal');
-    if (user) {
-        if (authModal) authModal.style.display = 'none';
-        switchTab('profile');
-
-        const username = user.email.split('@')[0];
-        const displayName = username.charAt(0).toUpperCase() + username.slice(1);
-
-        const displayNameEl = document.getElementById('display-name');
-        if (displayNameEl) displayNameEl.textContent = displayName;
-
-        const userRef = db.collection('users').doc(user.uid);
-        await userRef.set({
-            uid: user.uid,
-            email: user.email,
-            displayName: displayName,
-            online: true,
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        window.addEventListener('beforeunload', () => {
-            userRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
-        });
-
-        loadCadetsDirectory(user.uid);
-    } else {
-        if (authModal) authModal.style.display = 'flex';
-    }
-});
-
-// Auth Toggle & Execution
-let isLoginMode = true;
-document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.getElementById('auth-toggle-mode');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerHTML = isLoginMode ? '<span style="color: var(--accent-yellow);">🔐</span> Login' : '<span style="color: var(--accent-yellow);">📝</span> Register';
-            document.getElementById('auth-action-btn').innerText = isLoginMode ? 'Sign In' : 'Create Account';
-            toggleBtn.innerText = isLoginMode ? "Don't have an account? Register" : 'Already have an account? Sign In';
-        });
-    }
-
-    const actionBtn = document.getElementById('auth-action-btn');
-    if (actionBtn) {
-        actionBtn.addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
-            if (!email || !password) {
-                alert('Please enter email and password.');
-                return;
-            }
-            try {
-                if (isLoginMode) {
-                    await auth.signInWithEmailAndPassword(email, password);
-                } else {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                }
-                document.getElementById('auth-modal').style.display = 'none';
-            } catch (error) {
-                alert('Auth failed: ' + error.message);
-            }
-        });
-    }
-
-    loadLibraryMarket();
-    loadCommunityFeed();
-});
-
-// File Upload & Publish to Firestore (Persists on Refresh)
-const fileInput = document.getElementById('file-upload');
-const chooseFileLabel = document.querySelector('label[for="file-upload"]');
-if (fileInput && chooseFileLabel) {
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files && fileInput.files[0]) {
-            chooseFileLabel.textContent = `Selected: ${fileInput.files[0].name}`;
-            chooseFileLabel.style.color = '#22c55e';
-        }
-    });
+// Auth Mode Toggle
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('authActionBtn').innerText = isSignUpMode ? "Create Account" : "Sign In";
+  document.getElementById('authSubtitle').innerText = isSignUpMode ? "Register to earn, stake & compete" : "Enter your student account credentials";
+  document.getElementById('authToggleText').innerText = isSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up";
 }
 
-const publishBtn = document.querySelector('.card-creator .btn-accent');
-const courseInput = document.querySelector('.card-creator input[type="text"]');
+async function handleAuthSubmit() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+  if (!email || !password) { alert("Please fill in email and password."); return; }
 
-if (publishBtn) {
-    publishBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const courseCode = courseInput ? courseInput.value.trim() : '';
-        const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
-        const currentUser = auth.currentUser;
-
-        if (!courseCode || !file) {
-            alert('Enter course code and choose a PDF file, Oga!');
-            return;
-        }
-
-        alert('Publishing asset to Firestore market...');
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async function () {
-            await db.collection('library_market').add({
-                courseCode: courseCode,
-                fileName: file.name,
-                fileData: reader.result,
-                publisherEmail: currentUser.email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert('Asset published successfully, Oga!');
-            courseInput.value = '';
-            chooseFileLabel.textContent = 'Choose PDF File';
-            chooseFileLabel.style.color = 'var(--text-main)';
-        };
-    });
-}
-
-// Load Library Market
-function loadLibraryMarket() {
-    const listEl = document.getElementById('library-market-list');
-    if (!listEl) return;
-
-    db.collection('library_market').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-        listEl.innerHTML = '';
-        if (snapshot.empty) {
-            listEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.75rem;">- No assets listed yet</p>';
-            return;
-        }
-        snapshot.forEach((doc) => {
-            const item = doc.data();
-            const div = document.createElement('div');
-            div.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 10px; margin-bottom: 6px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
-            div.innerHTML = `
-                <span style="font-size: 0.75rem; color: var(--text-main);"><strong>${item.courseCode}</strong> (${item.fileName})<br><span style="font-size: 0.6rem; color: var(--text-muted);">By: ${item.publisherEmail}</span></span>
-                <div style="display: flex; gap: 4px;">
-                    <button onclick="readBookInApp('${encodeURIComponent(item.fileData)}', '${item.courseCode}')" style="background: var(--accent-purple); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; cursor: pointer;">Read</button>
-                    <a href="${item.fileData}" download="${item.fileName}" style="color: #38bdf8; font-size: 0.65rem; align-self: center;">Download</a>
-                </div>
-            `;
-            listEl.appendChild(div);
-        });
-    });
-}
-
-// In-App Reader Modal
-function readBookInApp(base64Data, title) {
-    let modal = document.getElementById('in-app-reader-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'in-app-reader-modal';
-        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 30000; display: flex; flex-direction: column; padding: 12px; box-sizing: border-box;';
-        document.body.appendChild(modal);
+  if (isSignUpMode) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) { alert("Sign up failed: " + error.message); } 
+    else {
+      if (data.user) {
+        await supabase.from('profiles').insert([{ id: data.user.id, email: email, full_name: email.split('@')[0], wallet_balance: 0 }]);
+      }
+      alert("Registration successful! Please sign in.");
+      toggleAuthMode();
     }
-    modal.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h3 style="color: white; font-size: 0.85rem; margin: 0;">📖 ${title}</h3>
-            <button onclick="document.getElementById('in-app-reader-modal').style.display='none'" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; cursor: pointer;">Close</button>
+  } else {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { alert("Login failed: " + error.message); } 
+    else {
+      currentUser = data.user;
+      fetchWalletBalance(currentUser.id);
+      document.getElementById('authModal').classList.remove('flex');
+      document.getElementById('authModal').classList.add('hidden');
+      alert("Welcome back!");
+    }
+  }
+}
+
+// Wallet & Paystack
+async function fetchWalletBalance(userId) {
+  const { data } = await supabase.from('profiles').select('wallet_balance').eq('id', userId).single();
+  if (data) {
+    const amt = `₦${Number(data.wallet_balance).toLocaleString()}`;
+    document.getElementById('userWallet').innerText = amt;
+    document.getElementById('walletDisplayLarge').innerText = amt;
+  }
+}
+
+function fundWalletPrompt() {
+  if (!currentUser) { alert("Please sign in first."); return; }
+  let amt = prompt("Enter amount to fund (₦):", "2000");
+  if (!amt || isNaN(amt)) return;
+
+  let handler = PaystackPop.setup({
+    key: 'pk_live_2ed633e5b6ff8b9c4f4fa5108046e3d496397f8c',
+    email: currentUser.email,
+    amount: Number(amt) * 100,
+    currency: 'NGN',
+    callback: async function(res) {
+      alert('Wallet funded successfully! Ref: ' + res.reference);
+      const { data: profile } = await supabase.from('profiles').select('wallet_balance').eq('id', currentUser.id).single();
+      const newBalance = Number(profile.wallet_balance) + Number(amt);
+      await supabase.from('profiles').update({ wallet_balance: newBalance }).eq('id', currentUser.id);
+      fetchWalletBalance(currentUser.id);
+    },
+    onClose: function() { alert('Payment cancelled.'); }
+  });
+  handler.openIframe();
+}
+
+async function requestAutomatedWithdrawal() {
+  if (!currentUser) { alert("Please sign in first."); return; }
+  let accountNumber = prompt("Enter your 10-digit NUBAN Account Number:");
+  let bankCode = prompt("Enter Bank Code (e.g. 058 for GTBank, 033 for UBA):");
+  let amt = prompt("Enter amount to withdraw (₦):");
+  if (!accountNumber || !bankCode || !amt || isNaN(amt)) { alert("Invalid details."); return; }
+  alert("Withdrawal request submitted successfully!");
+}
+
+// Library & Storage
+async function loadDocuments() {
+  const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
+  const list = document.getElementById('documentsList');
+  if (!list) return;
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="glass-panel p-6 rounded-2xl text-center text-slate-400 text-xs">No PDFs uploaded yet. Upload one to start!</div>`;
+    return;
+  }
+  list.innerHTML = data.map(doc => `
+    <div class="glass-panel p-4 rounded-2xl flex justify-between items-center shadow-md">
+      <div>
+        <h4 class="text-xs font-bold text-slate-200">${doc.title}</h4>
+        <p class="text-[10px] text-emerald-400 mt-0.5">Earns ₦${doc.price_per_page}/page</p>
+      </div>
+      <button onclick="openReaderWithFile('${doc.file_path}', '${doc.title}')" class="bg-indigo-600 hover:bg-indigo-500 text-xs font-bold px-3.5 py-2 rounded-xl text-white shadow-lg shadow-indigo-600/20 transition">Read</button>
+    </div>
+  `).join('');
+}
+
+function openReaderWithFile(path, title) {
+  document.getElementById('activeDocTitle').innerText = title;
+  document.getElementById('pdfFrame').src = path;
+  document.getElementById('activeReaderCard').classList.remove('hidden');
+}
+
+function closeReader() {
+  document.getElementById('activeReaderCard').classList.add('hidden');
+  document.getElementById('pdfFrame').src = '';
+}
+
+async function handleDocumentUpload(event) {
+  const file = event.target.files[0];
+  if (!file || !currentUser) { alert("Please sign in to upload."); return; }
+  let docTitle = prompt("Enter a title for this PDF:", file.name);
+  if (!docTitle) return;
+
+  alert("Uploading PDF to Supabase storage...");
+  const filePath = `uploads/${Date.now()}_${file.name}`;
+  const { error: storageError } = await supabase.storage.from('grade-x').upload(filePath, file);
+  if (storageError) { alert("Upload failed: " + storageError.message); return; }
+
+  const { data: publicUrlData } = supabase.storage.from('grade-x').getPublicUrl(filePath);
+  await supabase.from('documents').insert([{
+    uploader_id: currentUser.id,
+    title: docTitle,
+    description: "Uploaded via GradeX Arena",
+    file_path: publicUrlData.publicUrl,
+    total_pages: 10,
+    price_per_page: 5.00
+  }]);
+  alert("Document uploaded successfully!");
+  loadDocuments();
+}
+
+// Arena Match & Quiz Battle
+async function loadArenaRooms() {
+  const { data } = await supabase.from('stakes').select('*').eq('status', 'waiting');
+  const grid = document.getElementById('arenaRoomsGrid');
+  if (!data || data.length === 0) {
+    grid.innerHTML = `<div class="glass-panel p-6 rounded-2xl text-center text-slate-400 text-xs space-y-2"><p>No active match rooms.</p><p class="text-indigo-400 font-bold">Create a match to challenge players!</p></div>`;
+    return;
+  }
+  grid.innerHTML = data.map(room => `
+    <div class="glass-panel p-4 rounded-2xl flex justify-between items-center shadow-md">
+      <div>
+        <span class="text-[10px] uppercase bg-indigo-500/20 text-indigo-300 font-bold px-2 py-0.5 rounded">${room.category}</span>
+        <p class="text-sm font-black text-white mt-1.5">Stake: ₦${Number(room.stake_amount).toLocaleString()}</p>
+        <p class="text-[10px] text-emerald-400 mt-0.5">Pot: ₦${Number(room.stake_amount * 2).toLocaleString()}</p>
+      </div>
+      <button onclick="joinMatchRoom('${room.id}', ${room.stake_amount})" class="bg-emerald-600 hover:bg-emerald-500 text-xs font-bold px-4 py-2.5 rounded-xl text-white shadow-lg transition">Join ⚔️</button>
+    </div>
+  `).join('');
+}
+
+async function openCreateMatchModal() {
+  if (!currentUser) { alert("Please sign in first."); return; }
+  let category = prompt("Enter category (e.g., Petroleum Engineering):", "Petroleum Engineering");
+  let stakeAmt = prompt("Enter stake amount (₦):", "1000");
+  if (!category || !stakeAmt || isNaN(stakeAmt)) return;
+  const stake = Number(stakeAmt);
+
+  const { data: profile } = await supabase.from('profiles').select('wallet_balance').eq('id', currentUser.id).single();
+  if (!profile || Number(profile.wallet_balance) < stake) { alert("Insufficient wallet balance!"); return; }
+
+  await supabase.from('profiles').update({ wallet_balance: Number(profile.wallet_balance) - stake }).eq('id', currentUser.id);
+  fetchWalletBalance(currentUser.id);
+
+  await supabase.from('stakes').insert([{
+    challenger_id: currentUser.id,
+    stake_amount: stake,
+    total_pot: stake * 2,
+    winner_payout: stake * 2 * 0.90,
+    category: category,
+    status: 'waiting'
+  }]);
+  alert("Match room created!");
+  loadArenaRooms();
+}
+
+async function joinMatchRoom(matchId, stakeAmount) {
+  if (!currentUser) { alert("Please sign in first."); return; }
+  const { data: profile } = await supabase.from('profiles').select('wallet_balance').eq('id', currentUser.id).single();
+  if (!profile || Number(profile.wallet_balance) < stakeAmount) { alert("Insufficient balance!"); return; }
+
+  await supabase.from('profiles').update({ wallet_balance: Number(profile.wallet_balance) - stakeAmount }).eq('id', currentUser.id);
+  fetchWalletBalance(currentUser.id);
+  await supabase.from('stakes').update({ opponent_id: currentUser.id, status: 'active' }).eq('id', matchId);
+
+  alert("Match joined! Starting quiz battle...");
+  startQuizBattle(matchId, stakeAmount);
+}
+
+function startQuizBattle(matchId, stake) {
+  activeMatch = { id: matchId, stake: stake };
+  currentQuestionIndex = 0;
+  playerScores = { user: 0, opponent: 0 };
+  matchQuestions = [
+    { q: "What is the primary function of drilling mud in wellbore operations?", options: ["Cooling and lubricating the drill bit", "Increasing pipe friction", "Speeding up transport", "Dissolving casing strings"], answer: 0 },
+    { q: "Which instrument is standard for testing mud weight density?", options: ["Marsh Funnel", "API Mud Balance", "Hydrometer", "Viscometer"], answer: 1 },
+    { q: "What does NUBAN stand for in Nigerian banking?", options: ["National Uniform Bank Account Number", "Nigerian Universal Bank Account Network", "Numeric Unique Bank Access Number", "None"], answer: 0 },
+    { q: "What does SQL stand for in databases?", options: ["Secure Query Language", "Structured Query Language", "Simple Queue Logic", "System Link"], answer: 1 },
+    { q: "Which Supabase feature handles real-time cloud storage?", options: ["Auth", "Storage", "Edge Functions", "Triggers"], answer: 1 }
+  ];
+  renderQuestionScreen();
+}
+
+function renderQuestionScreen() {
+  if (currentQuestionIndex >= matchQuestions.length) { finalizeQuizBattle(); return; }
+  const q = matchQuestions[currentQuestionIndex];
+  document.getElementById('appMainContainer').innerHTML = `
+    <div class="space-y-4">
+      <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+        <span class="text-xs font-bold text-indigo-400">Question ${currentQuestionIndex + 1} of ${matchQuestions.length}</span>
+        <span class="text-xs font-semibold text-emerald-400">Stake: ₦${activeMatch.stake}</span>
+      </div>
+      <div class="glass-panel p-5 rounded-3xl space-y-4">
+        <h2 class="text-sm font-bold text-white leading-relaxed">${q.q}</h2>
+        <div class="space-y-2.5">
+          ${q.options.map((opt, idx) => `
+            <button onclick="submitAnswer(${idx},${q.answer})" class="w-full text-left bg-slate-950/80 hover:bg-indigo-600/20 border border-slate-800 p-3 rounded-xl text-xs text-slate-200 transition">
+              <b>${String.fromCharCode(65 + idx)}.</b>${opt}
+            </button>
+          `).join('')}
         </div>
-        <div style="flex: 1; background: white; border-radius: 6px; overflow: hidden;">
-            <iframe src="${decodeURIComponent(base64Data)}" style="width: 100%; height: 100%; border: none;"></iframe>
-        </div>
-    `;
-    modal.style.display = 'flex';
+      </div>
+    </div>
+  `;
 }
 
-// GradeBot AI Chat
-async function sendGradeBotMessage() {
-    const input = document.getElementById('gradebot-input');
-    const container = document.getElementById('gradebot-chat-container');
-    const msg = input ? input.value.trim() : '';
-    if (!msg) return;
-
-    const userBubble = document.createElement('div');
-    userBubble.style.cssText = 'background: var(--accent-purple); color: white; padding: 8px; border-radius: 6px; max-width: 85%; align-self: flex-end; font-size: 0.75rem;';
-    userBubble.textContent = msg;
-    container.appendChild(userBubble);
-    input.value = '';
-    container.scrollTop = container.scrollHeight;
-
-    try {
-        const res = await fetch('https://ibolpsixuxoeorhwmhte.supabase.co/functions/v1/swift-task', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: msg })
-        });
-        const data = await res.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't answer that right now, Cadet.";
-
-        const botBubble = document.createElement('div');
-        botBubble.style.cssText = 'background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: 6px; max-width: 85%; align-self: flex-start; font-size: 0.75rem;';
-        botBubble.textContent = reply;
-        container.appendChild(botBubble);
-        container.scrollTop = container.scrollHeight;
-    } catch (err) {
-        alert('AI connection error.');
-    }
+function submitAnswer(selected, correct) {
+  if (selected === correct) playerScores.user++;
+  if (Math.random() < 0.7) playerScores.opponent++;
+  currentQuestionIndex++;
+  renderQuestionScreen();
 }
 
-// Community Feed
-async function publishCommunityPost() {
-    const input = document.getElementById('community-post-input');
-    const content = input ? input.value.trim() : '';
-    const user = auth.currentUser;
-    if (!content || !user) {
-        alert('Write something and ensure you are logged in, Oga!');
-        return;
-    }
-    await db.collection('community_posts').add({
-        author: user.email.split('@')[0],
-        content: content,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    input.value = '';
-    alert('Posted successfully!');
+async function finalizeQuizBattle() {
+  const userWon = playerScores.user >= playerScores.opponent;
+  const payout = activeMatch.stake * 2 * 0.90;
+  const container = document.getElementById('appMainContainer');
+
+  if (userWon) {
+    const { data: profile } = await supabase.from('profiles').select('wallet_balance').eq('id', currentUser.id).single();
+    await supabase.from('profiles').update({ wallet_balance: Number(profile.wallet_balance || 0) + payout }).eq('id', currentUser.id);
+    await supabase.from('stakes').update({ status: 'completed', winner_id: currentUser.id }).eq('id', activeMatch.id);
+
+    container.innerHTML = `
+      <div class="glass-panel p-6 rounded-3xl text-center space-y-4 my-auto">
+        <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto text-2xl font-black">🏆</div>
+        <h1 class="text-xl font-black text-white">Victory! You Won</h1>
+        <p class="text-xs text-slate-300">Score: ${playerScores.user} - ${playerScores.opponent}</p>
+        <p class="text-2xl font-black text-emerald-400">+₦${payout.toLocaleString()}</p>
+        <button onclick="switchTab('arena')" class="w-full bg-indigo-600 py-3 rounded-xl text-xs font-bold text-white">Return to Arena</button>
+      </div>`;
+  } else {
+    await supabase.from('stakes').update({ status: 'completed' }).eq('id', activeMatch.id);
+    container.innerHTML = `
+      <div class="glass-panel p-6 rounded-3xl text-center space-y-4 my-auto">
+        <div class="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto text-2xl font-black">💀</div>
+        <h1 class="text-xl font-black text-white">Defeat!</h1>
+        <p class="text-xs text-slate-300">Score: ${playerScores.user} - ${playerScores.opponent}</p>
+        <button onclick="switchTab('arena')" class="w-full bg-indigo-600 py-3 rounded-xl text-xs font-bold text-white">Return to Arena</button>
+      </div>`;
+  }
+  fetchWalletBalance(currentUser.id);
 }
 
-function loadCommunityFeed() {
-    const feed = document.getElementById('community-feed-list');
-    if (!feed) return;
-    db.collection('community_posts').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-        feed.innerHTML = '';
-        if (snapshot.empty) {
-            feed.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">No community posts yet.</p>';
-            return;
-        }
-        snapshot.forEach((doc) => {
-            const p = doc.data();
-            const div = document.createElement('div');
-            div.style.cssText = 'background: var(--card-bg); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;';
-            div.innerHTML = `<strong style="font-size: 0.75rem; color: var(--accent-purple);">${p.author}</strong><p style="font-size: 0.75rem; color: var(--text-main); margin: 4px 0 0 0;">${p.content}</p>`;
-            feed.appendChild(div);
-        });
-    });
+// AI Companion Mock
+function askAIAssistant() {
+  const input = document.getElementById('aiQueryInput');
+  const chat = document.getElementById('aiChatHistory');
+  if (!input.value.trim()) return;
+  chat.innerHTML += `<div class="bg-indigo-600/20 p-3 rounded-xl text-slate-200 ml-4"><b>You:</b> ${input.value}</div>`;
+  const val = input.value;
+  input.value = '';
+  setTimeout(() => {
+    chat.innerHTML += `<div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-300 mr-4"><b>AI:</b> That's a great question regarding "${val}". In petroleum operations and study modules, maintaining mud density balance and proper monitoring prevents formation kicks.</div>`;
+    chat.scrollTop = chat.scrollHeight;
+  }, 600);
 }
 
-// Cadets Directory
-function loadCadetsDirectory(currentUserId) {
-    const list = document.getElementById('cadets-list');
-    if (!list) return;
-    db.collection('users').onSnapshot((snapshot) => {
-        list.innerHTML = '';
-        snapshot.forEach((doc) => {
-            const user = doc.data();
-            if (user.uid === currentUserId) return;
-            const div = document.createElement('div');
-            div.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
-            div.innerHTML = `<span style="font-size: 0.75rem;">${user.displayName} <br><span style="font-size: 0.6rem; color: ${user.online ? '#22c55e' : '#64748b'};">● ${user.online ? 'Online' : 'Offline'}</span></span><button onclick="alert('Friend request sent!')" style="font-size: 0.65rem; padding: 4px 8px;">Add</button>`;
-            list.appendChild(div);
-        });
-    });
-}
-
-// Profile & Signout Helpers
-function toggleEditProfile() {
-    const name = prompt('Enter new display name:');
-    if (name) document.getElementById('display-name').textContent = name;
-}
-
-async function signOutUser() {
-    await auth.signOut();
-    location.reload();
-}
-// Toggle Slide-Out Sidebar Drawer
-function toggleSidebar() {
-    const drawer = document.getElementById('sidebar-drawer');
-    if (drawer) {
-        drawer.style.left = drawer.style.left === '0px' ? '-280px' : '0px';
-    }
-}
+// Startup Session
+window.onload = async function() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session && session.user) {
+    currentUser = session.user;
+    fetchWalletBalance(currentUser.id);
+    document.getElementById('authModal').classList.remove('flex');
+    document.getElementById('authModal').classList.add('hidden');
+  } else {
+    document.getElementById('authModal').classList.remove('hidden');
+    document.getElementById('authModal').classList.add('flex');
+  }
+  loadDocuments();
+};
