@@ -250,12 +250,15 @@ signOutBtn.addEventListener("click", async function () {
 
 const navButtons = document.querySelectorAll(".nav-btn");
 
+
 const pages = {
     library: document.getElementById("libraryPage"),
     bot: document.getElementById("botPage"),
     arena: document.getElementById("arenaPage"),
-    wallet: document.getElementById("walletPage")
+    wallet: document.getElementById("walletPage"),
+    comingSoon: document.getElementById("comingSoonPage")
 };
+
 
 
 navButtons.forEach(function (button) {
@@ -787,7 +790,21 @@ chatForm.addEventListener("submit", async function(event) {
         return doc.id === selectedPdfId;
     });
 
-    let pdfContext = "";
+
+let pdfContext = "";
+
+if (selectedPdf) {
+    if (botPDFStatus) {
+        botPDFStatus.textContent = "Extracting text from your PDF...";
+    }
+
+    pdfContext = await extractPdfText(selectedPdf);
+
+    if (botPDFStatus) {
+        botPDFStatus.textContent =
+            "Studying: " + selectedPdf.title;
+    }
+}
 
     if (selectedPdf) {
         botPDFStatus.textContent = "Reading PDF...";
