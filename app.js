@@ -456,7 +456,26 @@ async function loadDocuments() {
 // 10. DISPLAY DOCUMENTS
 // ============================================
 
-function renderDocuments() {
+function renderDocuments() {    // Keep Grade Bot's PDF selector synced with the Library.
+    if (botPDF) {
+        const previousSelection = botPDF.value;
+        
+        botPDF.innerHTML =
+            '<option value="">General questions (no PDF selected)</option>';
+        
+        documents.forEach(function(doc) {
+            const option = document.createElement("option");
+            option.value = doc.id;
+            option.textContent = doc.title + " — " + doc.subject;
+            botPDF.appendChild(option);
+        });
+        
+        if (documents.some(function(doc) {
+                return doc.id === previousSelection;
+            })) {
+            botPDF.value = previousSelection;
+        }
+    }
     const searchTerm = searchPDF.value.trim().toLowerCase();
 
     const filteredDocuments = documents.filter(function (doc) {
@@ -671,7 +690,8 @@ closeReader.addEventListener("click", function () {
 const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const chatMessages = document.getElementById("chatMessages");
-
+const botPDF = document.getElementById("botPDF");
+const botPDFStatus = document.getElementById("botPDFStatus");
 chatForm.addEventListener("submit", async function(event) {
     event.preventDefault();
     

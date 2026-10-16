@@ -158,39 +158,48 @@
                 </div>
             </section>
 
-            <!-- GRADE BOT -->
-            <section id="botPage" class="page" hidden>
-                <div class="section-heading">
-                    <div>
-                        <h2>GRADE BOT</h2>
-                        <p>Your personal AI study assistant.</p>
-                    </div>
+<!-- GRADE BOT -->
+        <section id="botPage" class="page" hidden>
+            <div class="section-heading">
+                <div>
+                    <h2>GRADE BOT</h2>
+                    <p>Your personal AI study assistant.</p>
                 </div>
+            </div>
 
-                <div class="bot-card">
-                    <div class="bot-avatar">🤖</div>
-                    <h3>Meet Grade Bot</h3>
-                    <p>Ask questions, explore concepts and get help with your studies.</p>
+            <div class="bot-card">
+                <div class="bot-avatar">🤖</div>
+                <h3>Meet Grade Bot</h3>
+                <p>Ask questions, explore concepts and study from your PDFs.</p>
 
-                    <div id="chatMessages" class="chat-messages">
-                        <div class="bot-message">
-                            Hey student! 👋 I'm Grade Bot. What are we learning today?
-                        </div>
-                    </div>
-
-                    <form id="chatForm" class="chat-form">
-                        <input id="chatInput" type="text"
-                               placeholder="Ask a study question..."
-                               required>
-                        <button type="submit">➤</button>
-                    </form>
-
-                    <p class="small-note">
-                        AI responses will be enabled when we connect the secure AI service.
+                <div class="pdf-study-picker">
+                    <label for="botPDF">📚 Study from a PDF in your Library</label>
+                    <select id="botPDF">
+                        <option value="">General questions (no PDF selected)</option>
+                    </select>
+                    <p id="botPDFStatus" class="small-note">
+                        Select a document to study from it.
                     </p>
                 </div>
-            </section>
 
+                <div id="chatMessages" class="chat-messages">
+                    <div class="bot-message">
+                        Hey student! 👋 I'm Grade Bot. Select a PDF from your Library, then ask me questions about it!
+                    </div>
+                </div>
+
+                <form id="chatForm" class="chat-form">
+                    <input id="chatInput" type="text"
+                           placeholder="Ask about your PDF..."
+                           required>
+                    <button type="submit">➤</button>
+                </form>
+
+                <p class="small-note">
+                    Grade Bot can only answer from a selected PDF once its contents are connected to the AI request.
+                </p>
+            </div>
+        </section>
             <!-- ARENA -->
             <section id="arenaPage" class="page" hidden>
                 <div class="section-heading">
