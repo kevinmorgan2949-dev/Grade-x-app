@@ -1,5 +1,5 @@
 // ============================================
-// GRADE X — SMALL ARENA
+// GRADE X arena
 // Application logic
 // ============================================
 
@@ -687,6 +687,89 @@ closeReader.addEventListener("click", function () {
 // 13. GRADE BOT — PLACEHOLDER
 // ============================================
 
+async function extractPdfText(doc) {
+    if (!window.pdfjsLib) {
+        throw new Error("PDF reader is unavailable. Please refresh the app.");
+    }
+
+    const url = getPublicPdfUrl(doc.storage_path);
+
+    const loadingTask = pdfjsLib.getDocument({ url });
+    const pdf = await loadingTask.promise;
+
+    let extractedText = "";
+    const maxPages = Math.min(pdf.numPages, 30);
+
+    for (let pageNumber = 1; pageNumber <= maxPages; pageNumber++) {
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+
+        const pageText = content.items
+            .map(function (item) {
+                return item.str || "";
+            })
+            .join(" ");
+
+        extractedText +=
+            "\n[Page " + pageNumber + "]\n" + pageText;
+
+        // Avoid sending excessively large PDFs to the AI.
+        if (extractedText.length >= 24000) {
+            extractedText = extractedText.slice(0, 24000);
+            break;
+        }
+    }
+
+    if (!extractedText.trim()) {
+        throw new Error(
+            "No selectable text was found in this PDF. It may be a scanned document."
+        );
+    }
+
+    return extractedText;
+}
+
+async function extractPdfText(doc) {
+    if (!window.pdfjsLib) {
+        throw new Error("PDF reader is unavailable. Please refresh the app.");
+    }
+
+    const url = getPublicPdfUrl(doc.storage_path);
+
+    const loadingTask = pdfjsLib.getDocument({ url });
+    const pdf = await loadingTask.promise;
+
+    let extractedText = "";
+    const maxPages = Math.min(pdf.numPages, 30);
+
+    for (let pageNumber = 1; pageNumber <= maxPages; pageNumber++) {
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+
+        const pageText = content.items
+            .map(function (item) {
+                return item.str || "";
+            })
+            .join(" ");
+
+        extractedText +=
+            "\n[Page " + pageNumber + "]\n" + pageText;
+
+        // Avoid sending excessively large PDFs to the AI.
+        if (extractedText.length >= 24000) {
+            extractedText = extractedText.slice(0, 24000);
+            break;
+        }
+    }
+
+    if (!extractedText.trim()) {
+        throw new Error(
+            "No selectable text was found in this PDF. It may be a scanned document."
+        );
+    }
+
+    return extractedText;
+}
 const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const chatMessages = document.getElementById("chatMessages");
@@ -698,6 +781,31 @@ chatForm.addEventListener("submit", async function(event) {
     const question = chatInput.value.trim();
     
     if (!question) return;
+    
+    const selectedPdfId = botPDF ? botPDF.value : "";
+    const selectedPdf = documents.find(function (doc) {
+        return doc.id === selectedPdfId;
+    });
+
+    let pdfContext = "";
+
+    if (selectedPdf) {
+        botPDFStatus.textContent = "Reading PDF...";
+        botPDFStatus.style.color = "#36e4f5";
+
+        try {
+            pdfContext = await extractPdfText(selectedPdf);
+
+            botPDFStatus.textContent =
+                "Studying: " + selectedPdf.title;
+        } catch (pdfError) {
+            botPDFStatus.textContent =
+                "Could not read PDF: " + pdfError.message;
+            botPDFStatus.style.color = "#fb7185";
+            return;
+        }
+    }
+
     
     // Display the student's message
     const userMessage = document.createElement("div");
@@ -720,13 +828,15 @@ chatForm.addEventListener("submit", async function(event) {
     
     try {
         // Send the question to your Supabase Edge Function
-        const { data, error } = await db.functions.invoke("dynamic-function", {
-                body: {
-                    question: question
-                }
-            }
-        );
         
+const { data, error } = await db.functions.invoke("dynamic-function", {
+    body: {
+        question: question,
+        pdfContext: pdfContext,
+        pdfTitle: selectedPdf ? selectedPdf.title : ""
+    }
+});
+
         if (error) {
             console.error("GRADE BOT connection error:", error);
             throw new Error(
@@ -758,10 +868,10 @@ chatForm.addEventListener("submit", async function(event) {
 });
 
 // ============================================
-// 14. SMALL ARENA — FREE PRACTICE QUIZ
+// 14. ARENA — FREE PRACTICE QUIZ
 // ============================================
 
-const quizQuestions = [
+ quizQuestions = [
     {
         question: "What is the chemical symbol for water?",
         options: ["CO2", "H2O", "O2", "NaCl"],
@@ -831,7 +941,7 @@ let quizAnswered = false;
 const startQuiz = document.getElementById("startQuiz");
 const quizArea = document.getElementById("quizArea");
 const quizProgress = document.getElementById("quizProgress");
-const quizQuestion = document.getElementById("quizQuestion");
+const quizconstion = document.getElementById("quizQuestion");
 const quizOptions = document.getElementById("quizOptions");
 const quizFeedback = document.getElementById("quizFeedback");
 const nextQuestion = document.getElementById("nextQuestion");
