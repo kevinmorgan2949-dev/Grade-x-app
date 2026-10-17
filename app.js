@@ -150,10 +150,15 @@ authForm.addEventListener("submit", async function (event) {
 
     try {
         if (isSigningUp) {
-            const { data, error } = await db.auth.signUp({
-                email: email,
-                password: password
-            });
+            
+const { data, error } = await db.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+        emailRedirectTo: "https://kevinmorgan2949-dev.github.io/Grade-x-app/"
+    }
+});
+
 
             if (error) throw error;
 
