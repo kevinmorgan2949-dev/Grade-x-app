@@ -526,6 +526,23 @@ function renderDocuments() {    // Keep Grade Bot's PDF selector synced with the
                 <p>📘 ${escapeHTML(doc.subject)}</p>
 
                 <p>${escapeHTML(doc.description || "Study material")}</p>
+<div class="pdf-author">
+    ${doc.author_avatar
+        ? `<img
+            src="${escapeHTML(doc.author_avatar)}"
+            alt=""
+            class="pdf-author-avatar">`
+        : `<span class="pdf-author-avatar-fallback">👤</span>`
+    }
+
+    <button
+        type="button"
+        class="pdf-author-name"
+        data-action="view-author"
+        data-author-id="${escapeHTML(doc.uploader_id)}">
+        ${escapeHTML(doc.author_name || "GRADE X Student")}
+    </button>
+</div>
 
                 <p>${formatFileSize(doc.file_size)}</p>
 
@@ -570,13 +587,23 @@ function getPublicPdfUrl(storagePath) {
 // 12. READ PDF
 // ============================================
 
+
 pdfList.addEventListener("click", async function (event) {
     const button = event.target.closest("button[data-action]");
 
     if (!button) return;
 
-    const documentId = button.dataset.id;
     const action = button.dataset.action;
+
+    // Open a student's public profile
+    if (action === "view-author") {
+        const authorId = button.dataset.authorId;
+
+        console.log("Open student profile:", authorId);
+        return;
+    }
+
+    const documentId = button.dataset.id;
 
     const doc = documents.find(function (item) {
         return item.id === documentId;
@@ -605,7 +632,6 @@ pdfList.addEventListener("click", async function (event) {
         await openPdfReader(doc, url);
     }
 });
-
 
 async function openPdfReader(doc, url) {
     if (!window.pdfjsLib) {
