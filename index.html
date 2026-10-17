@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#100d24">
@@ -14,6 +19,26 @@
 </head>
 
 <body>
+    
+<!-- GRADE X ARENA OPENING SCREEN -->
+<div id="gx-splash" aria-label="Loading GRADE X Arena">
+    <div class="gx-logo">
+        <div class="gx-logo-x">GRADE X</div>
+        <div class="gx-logo-arena">ARENA</div>
+    </div>
+
+    <div class="gx-line"></div>
+
+    <p class="gx-tagline">YOUR KNOWLEDGE. YOUR POWER.</p>
+
+    <div class="gx-loading" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</div>
+<!-- END OPENING SCREEN -->
+
 
     <header class="topbar">
         <div class="brand">
@@ -375,6 +400,33 @@ href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
     </footer>
 
     <script src="app.js"></script>
+    
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+            .catch((error) => {
+                console.error("Service worker error:", error);
+            });
+    });
+}
+</script>
+
+<script>
+window.addEventListener("load", function () {
+    const splash = document.getElementById("gx-splash");
+
+    if (splash) {
+        setTimeout(function () {
+            splash.classList.add("gx-hide");
+        }, 2300);
+
+        setTimeout(function () {
+            splash.remove();
+        }, 3100);
+    }
+});
+</script>
 
 </body>
 </html>

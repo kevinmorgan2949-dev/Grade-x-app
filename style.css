@@ -833,3 +833,98 @@ footer p:last-child {
         display: none;
     }
 }
+
+/* GRADE X ARENA OPENING ANIMATION */
+#gx-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, #211044, #0b0718 55%, #030308);
+    color: white;
+    font-family: Arial, sans-serif;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+}
+
+#gx-splash.gx-hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.gx-logo {
+    text-align: center;
+    animation: gx-enter 1s ease both;
+}
+
+.gx-logo-x {
+    font-size: clamp(48px, 15vw, 76px);
+    font-weight: 900;
+    letter-spacing: 5px;
+    color: #c4b5fd;
+    text-shadow: 0 0 15px #8b5cf6, 0 0 35px #7c3aed;
+    animation: gx-glow 2s ease-in-out infinite alternate;
+}
+
+.gx-logo-arena {
+    margin-top: 8px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 10px;
+    color: #60a5fa;
+    text-shadow: 0 0 20px #2563eb;
+}
+
+.gx-line {
+    width: 0;
+    height: 3px;
+    margin: 22px auto;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #7c3aed, #60a5fa);
+    animation: gx-line-open 1.2s ease 0.4s forwards;
+}
+
+.gx-tagline {
+    color: #d4d4d8;
+    font-size: 11px;
+    letter-spacing: 3px;
+}
+
+.gx-loading {
+    display: flex;
+    gap: 8px;
+    margin-top: 34px;
+}
+
+.gx-loading span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #a78bfa;
+    animation: gx-dot 0.9s ease-in-out infinite alternate;
+}
+
+.gx-loading span:nth-child(2) { animation-delay: 0.2s; }
+.gx-loading span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes gx-enter {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gx-glow {
+    from { text-shadow: 0 0 10px #8b5cf6; }
+    to { text-shadow: 0 0 15px #8b5cf6, 0 0 35px #7c3aed, 0 0 60px #4c1d95; }
+}
+
+@keyframes gx-line-open {
+    to { width: 180px; }
+}
+
+@keyframes gx-dot {
+    from { opacity: 0.25; transform: translateY(0); }
+    to { opacity: 1; transform: translateY(-5px); }
+}
