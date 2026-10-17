@@ -243,49 +243,116 @@ href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
                 </p>
             </div>
         </section>
-            <!-- ARENA -->
-            <section id="arenaPage" class="page" hidden>
-                <div class="section-heading">
-                    <div>
-                        <h2>Small Arena</h2>
-                        <p>Test your knowledge and improve your skills.</p>
-                    </div>
-                </div>
+            
+<!-- ARENA: UNDER DEVELOPMENT -->
+<section id="arenaPage" class="page" hidden>
 
-                <div class="arena-card">
-                    <span class="arena-icon">🏆</span>
-                    <h3>Knowledge Challenge</h3>
-                    <p>Answer questions, track your score and challenge yourself.</p>
-                    <div class="arena-stats">
-                        <div>
-                            <strong>FREE</strong>
-                            <span>Practice mode</span>
-                        </div>
-                        <div>
-                            <strong>10</strong>
-                            <span>Questions</span>
-                        </div>
-                    </div>
-                    <button id="startQuiz" class="primary-btn">
-                        Start Practice Quiz
-                    </button>
-                </div>
+    <div style="
+        min-height: 65vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 30px 18px;
+        border-radius: 22px;
+        background: radial-gradient(ellipse at top, #241044 0%, #100d24 48%, #080711 100%);
+        border: 1px solid rgba(139, 92, 246, 0.45);
+        box-shadow: 0 0 30px rgba(124, 58, 237, 0.12);
+    ">
 
-                <div id="quizArea" class="quiz-card" hidden>
-                    <div id="quizProgress"></div>
-                    <h3 id="quizQuestion"></h3>
-                    <div id="quizOptions"></div>
-                    <p id="quizFeedback"></p>
-                    <button id="nextQuestion" class="primary-btn" hidden>
-                        Next Question
-                    </button>
-                </div>
+        <div style="
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #8b5cf6;
+            background: rgba(124, 58, 237, 0.12);
+            box-shadow: 0 0 28px rgba(139, 92, 246, 0.25);
+            font-size: 48px;
+            margin-bottom: 25px;
+        ">🏆</div>
 
-                <p class="small-note">
-                    Practice mode is free. Paid competitions and real-money
-                    rewards are not enabled.
-                </p>
-            </section>
+        <p style="
+            color: #a78bfa;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+        ">GRADE X</p>
+
+        <h2 style="
+            color: #ffffff;
+            font-size: clamp(26px, 7vw, 36px);
+            line-height: 1.25;
+            margin: 0 0 16px;
+        ">ARENA</h2>
+
+        <div style="
+            padding: 9px 17px;
+            border: 1px solid #8b5cf6;
+            border-radius: 30px;
+            color: #c4b5fd;
+            background: rgba(124, 58, 237, 0.15);
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+        ">🚧 UNDER DEVELOPMENT</div>
+
+        <h3 style="
+            color: #ffffff;
+            font-size: 23px;
+            margin: 0 0 12px;
+        ">COMING SOON</h3>
+
+        <p style="
+            color: #c4bfd6;
+            font-size: 14px;
+            line-height: 1.8;
+            max-width: 300px;
+            margin: 0 auto 25px;
+        ">
+            Something exciting is being built.
+            Get ready for a new way to test your knowledge,
+            challenge yourself and rise higher.
+        </p>
+
+        <div style="
+            width: 75px;
+            height: 3px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #7c3aed, #38bdf8);
+            margin-bottom: 20px;
+        "></div>
+
+        <p style="
+            color: #a78bfa;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin: 0;
+        ">YOUR KNOWLEDGE. YOUR POWER.</p>
+
+    </div>
+
+    <!-- Hidden compatibility elements for existing app.js.
+         These prevent errors if the current JavaScript still
+         references the old quiz element IDs. -->
+    <div hidden aria-hidden="true">
+        <button id="startQuiz" type="button" tabindex="-1"></button>
+        <div id="quizArea">
+            <div id="quizProgress"></div>
+            <h3 id="quizQuestion"></h3>
+            <div id="quizOptions"></div>
+            <p id="quizFeedback"></p>
+            <button id="nextQuestion" type="button"></button>
+        </div>
+    </div>
+
+</section>
+<!-- END ARENA -->
 
             <!-- WALLET -->
             <section id="walletPage" class="page" hidden>
