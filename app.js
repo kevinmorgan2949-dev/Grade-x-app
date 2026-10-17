@@ -214,10 +214,14 @@ async function updateAppSession(session) {
     authSection.hidden = true;
     appSection.hidden = false;
 
-    studentEmail.textContent =
-        currentUser.email || "Student";
+    
+studentEmail.textContent =
+    currentUser.email || "Student";
 
-    await loadDocuments();
+renderProfile();
+
+await loadDocuments();
+
 }
 
 
@@ -256,12 +260,14 @@ signOutBtn.addEventListener("click", async function () {
 const navButtons = document.querySelectorAll(".nav-btn");
 
 
+
 const pages = {
     library: document.getElementById("libraryPage"),
     bot: document.getElementById("botPage"),
     arena: document.getElementById("arenaPage"),
     wallet: document.getElementById("walletPage"),
-    comingSoon: document.getElementById("comingSoonPage")
+    comingSoon: document.getElementById("comingSoonPage"),
+    profile: document.getElementById("profilePage")
 };
 
 
@@ -1091,6 +1097,196 @@ nextQuestion.addEventListener("click", function () {
     startQuiz.textContent = "Play Again";
 });
 
+
+/* =========================================
+   GRADE X — EDIT STUDENT PROFILE
+========================================= */
+
+const profileNameInput = document.getElementById("profileNameInput");
+const profileNameDisplay = document.getElementById("profileName");
+const profileEmailDisplay = document.getElementById("profileEmail");
+const profilePictureInput = document.getElementById("profilePictureInput");
+const profileAvatarImage = document.getElementById("profileAvatarImage");
+const profileAvatarFallback = document.getElementById("profileAvatarFallback");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const profileStatus = document.getElementById("profileStatus");
+
+let selectedProfilePicture = null;
+let profilePreviewUrl = null;
+
+
+// Show the saved profile information
+function renderProfile() {
+    if (!currentUser) return;
+
+    const metadata = currentUser.user_metadata || {};
+    const displayName = metadata.display_name || "GRADE X Student";
+    const avatarUrl = metadata.avatar_url || "";
+
+    profileNameDisplay.textContent = displayName;
+    profileEmailDisplay.textContent = currentUser.email || "";
+    profileNameInput.value = metadata.display_name || "";
+
+    if (profilePreviewUrl) {
+        URL.revokeObjectURL(profilePreviewUrl);
+        profilePreviewUrl = null;
+    }
+
+    selectedProfilePicture = null;
+    profilePictureInput.value = "";
+
+    if (avatarUrl) {
+        profileAvatarImage.src = avatarUrl;
+        profileAvatarImage.hidden = false;
+        profileAvatarFallback.hidden = true;
+    } else {
+        profileAvatarImage.removeAttribute("src");
+        profileAvatarImage.hidden = true;
+        profileAvatarFallback.hidden = false;
+    }
+
+    profileStatus.textContent = "";
+}
+
+
+// If the saved photo cannot load, show the default avatar
+profileAvatarImage.addEventListener("error", function () {
+    profileAvatarImage.hidden = true;
+    profileAvatarFallback.hidden = false;
+});
+
+
+// Preview a new photo before saving
+profilePictureInput.addEventListener("change", function () {
+    const file = profilePictureInput.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        profileStatus.textContent = "Please select an image.";
+        profileStatus.style.color = "#fb7185";
+        profilePictureInput.value = "";
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        profileStatus.textContent = "Image must be 5 MB or smaller.";
+        profileStatus.style.color = "#fb7185";
+        profilePictureInput.value = "";
+        return;
+    }
+
+    selectedProfilePicture = file;
+
+    if (profilePreviewUrl) {
+        URL.revokeObjectURL(profilePreviewUrl);
+    }
+
+    profilePreviewUrl = URL.createObjectURL(file);
+
+    profileAvatarImage.src = profilePreviewUrl;
+    profileAvatarImage.hidden = false;
+    profileAvatarFallback.hidden = true;
+
+    profileStatus.textContent = "Photo selected. Tap Save Changes.";
+    profileStatus.style.color = "#36e4f5";
+});
+
+
+// Save the display name and optional profile picture
+saveProfileBtn.addEventListener("click", async function () {
+    if (!currentUser) {
+        profileStatus.textContent = "Please sign in first.";
+        profileStatus.style.color = "#fb7185";
+        return;
+    }
+
+    const displayName = profileNameInput.value.trim();
+
+    if (!displayName) {
+        profileStatus.textContent = "Please enter your display name.";
+        profileStatus.style.color = "#fb7185";
+        return;
+    }
+
+    saveProfileBtn.disabled = true;
+    profileStatus.textContent = "Saving your profile...";
+    profileStatus.style.color = "#36e4f5";
+
+    try {
+        let avatarUrl = currentUser.user_metadata?.avatar_url || "";
+
+        if (selectedProfilePicture) {
+            const file = selectedProfilePicture;
+
+            const extensions = {
+                "image/jpeg": "jpg",
+                "image/png": "png",
+                "image/webp": "webp",
+                "image/gif": "gif"
+            };
+
+            const extension = extensions[file.type];
+
+            if (!extension) {
+                throw new Error(
+                    "Please use a JPG, PNG, WEBP, or GIF image."
+                );
+            }
+
+            const storagePath =
+                currentUser.id +
+                "/profile_" +
+                crypto.randomUUID() +
+                "." +
+                extension;
+
+            const { error: uploadError } = await db.storage
+                .from(BUCKET_NAME)
+                .upload(storagePath, file, {
+                    contentType: file.type,
+                    upsert: false
+                });
+
+            if (uploadError) throw uploadError;
+
+            const { data: publicData } = db.storage
+                .from(BUCKET_NAME)
+                .getPublicUrl(storagePath);
+
+            avatarUrl = publicData.publicUrl;
+        }
+
+        const { data, error } = await db.auth.updateUser({
+            data: {
+                display_name: displayName,
+                avatar_url: avatarUrl
+            }
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+            currentUser = data.user;
+        }
+
+        renderProfile();
+
+        profileStatus.textContent = "Profile saved successfully! ✅";
+        profileStatus.style.color = "#4ade80";
+
+    } catch (error) {
+        console.error("Profile save error:", error);
+
+        profileStatus.textContent =
+            "Could not save: " + error.message;
+
+        profileStatus.style.color = "#fb7185";
+
+    } finally {
+        saveProfileBtn.disabled = false;
+    }
+});
 
 // ============================================
 // 15. START THE APP

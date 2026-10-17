@@ -138,6 +138,10 @@ href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
         <span class="nav-icon">🚀</span>
         <span class="nav-label">More</span>
     </button>
+    <button class="nav-btn" data-page="profile">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Profile</span>
+</button>
 </nav>
             <!-- LIBRARY -->
             <section id="libraryPage" class="page">
@@ -468,6 +472,106 @@ href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
     </div>
 </section>
 
+<!-- PROFILE PAGE -->
+<section id="profilePage" class="page" hidden>
+
+    <div class="section-heading">
+        <div>
+            <h2>👤 My Profile</h2>
+            <p>Manage your GRADE X student account.</p>
+        </div>
+    </div>
+
+    <!-- STUDENT PROFILE CARD -->
+    
+<div class="notice-card profile-card">
+
+    <div class="profile-picture-area">
+        <img
+            id="profileAvatarImage"
+            class="profile-picture"
+            src=""
+            alt="Student profile picture"
+            hidden
+        >
+
+        <div id="profileAvatarFallback" class="profile-avatar">
+            👤
+        </div>
+
+        <label for="profilePictureInput" class="change-photo-btn">
+            📷 Change Picture
+        </label>
+
+        <input
+            type="file"
+            id="profilePictureInput"
+            accept="image/*"
+            hidden
+        >
+    </div>
+
+    <h2 id="profileName">GRADE X Student</h2>
+    <p id="profileEmail">Student email</p>
+
+    <div class="profile-badge">🎓 GRADE X Student</div>
+
+    <div class="profile-edit-form">
+        <label for="profileNameInput">Display Name</label>
+
+        <input
+            type="text"
+            id="profileNameInput"
+            placeholder="Enter your name"
+            maxlength="60"
+        >
+
+        <button type="button" id="saveProfileBtn">
+            💾 Save Changes
+        </button>
+
+        <p id="profileStatus" role="status"></p>
+    </div>
+
+</div>
+
+
+    <!-- LEARNING PROGRESS -->
+    <div class="notice-card">
+        <h3>📚 Learning Progress</h3>
+        <p>Keep learning, reading PDFs, and practising quizzes to improve your knowledge.</p>
+
+        <div class="profile-stat">
+            <span>📖 PDF Library</span>
+            <span>Study and learn</span>
+        </div>
+
+        <div class="profile-stat">
+            <span>🤖 Grade Bot</span>
+            <span>Ask questions</span>
+        </div>
+
+        <div class="profile-stat">
+            <span>🏆 Arena</span>
+            <span>Practise quizzes</span>
+        </div>
+    </div>
+
+    <!-- ACCOUNT SETTINGS -->
+    <div class="notice-card">
+        <h3>⚙️ Account Settings</h3>
+        <p>Your GRADE X account and sign-out options.</p>
+
+        <button
+            type="button"
+            class="secondary-btn"
+            onclick="document.getElementById('signOutBtn').click()">
+            🚪 Sign Out
+        </button>
+    </div>
+
+</section>
+<!-- END PROFILE PAGE -->
 
             <button id="signOutBtn" class="signout-btn">
                 Sign Out
