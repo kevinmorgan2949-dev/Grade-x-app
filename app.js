@@ -595,13 +595,20 @@ pdfList.addEventListener("click", async function (event) {
 
     const action = button.dataset.action;
 
+
     // Open a student's public profile
     if (action === "view-author") {
         const authorId = button.dataset.authorId;
 
-        console.log("Open student profile:", authorId);
+        if (!authorId) {
+            alert("Student profile is unavailable.");
+            return;
+        }
+
+        await openPublicStudentProfile(authorId);
         return;
     }
+
 
     const documentId = button.dataset.id;
 
@@ -632,6 +639,161 @@ pdfList.addEventListener("click", async function (event) {
         await openPdfReader(doc, url);
     }
 });
+
+async function openPublicStudentProfile(studentId) {
+    const profilePage = document.getElementById("publicStudentProfilePage");
+    const nameElement = document.getElementById("publicStudentName");
+    const avatarImage = document.getElementById("publicStudentAvatar");
+    const avatarFallback = document.getElementById("publicStudentAvatarFallback");
+    const joinedElement = document.getElementById("publicStudentJoined");
+    const pdfContainer = document.getElementById("publicStudentPDFs");
+    const statusElement = document.getElementById("publicStudentProfileStatus");
+
+    if (!profilePage) {
+        alert("Student profile screen could not be found.");
+        return;
+    }
+
+    nameElement.textContent = "Loading profile...";
+    joinedElement.textContent = "";
+    pdfContainer.innerHTML = "<p>Loading study materials...</p>";
+    statusElement.textContent = "";
+    avatarImage.hidden = true;
+    avatarImage.removeAttribute("src");
+    avatarFallback.hidden = false;
+
+    Object.keys(pages).forEach(function (key) {
+        pages[key].hidden = true;
+    });
+
+    profilePage.hidden = false;
+    profilePage.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    try {
+        const { data: student, error: profileError } = await db
+            .from("student_public_profiles")
+            .select("id, full_name, display_name, avatar_url, created_at")
+            .eq("id", studentId)
+            .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        if (!student) {
+            nameElement.textContent = "GRADE X Student";
+            pdfContainer.innerHTML = "<p>Student profile not found.</p>";
+            return;
+        }
+
+        nameElement.textContent =
+            student.display_name || student.full_name || "GRADE X Student";
+
+        if (student.avatar_url) {
+            avatarImage.src = student.avatar_url;
+            avatarImage.hidden = false;
+            avatarFallback.hidden = true;
+        }
+
+        if (student.created_at) {
+            joinedElement.textContent =
+                "Joined " + new Date(student.created_at).toLocaleDateString();
+        }
+
+        const { data: studentPDFs, error: pdfError } = await db
+            .from("published_pdfs_with_authors")
+            .select("id, title, subject, description, file_size, uploader_id, storage_path, original_filename, created_at")
+            .eq("uploader_id", studentId)
+            .order("created_at", { ascending: false });
+
+        if (pdfError) throw pdfError;
+
+        if (!studentPDFs || studentPDFs.length === 0) {
+            pdfContainer.innerHTML = "<p>This student hasn't published any PDFs yet.</p>";
+            return;
+        }
+
+        pdfContainer.innerHTML = studentPDFs.map(function (doc) {
+            return `
+                <article class="pdf-card">
+                    <div class="pdf-icon">📕</div>
+                    <h3>${escapeHTML(doc.title || "Untitled PDF")}</h3>
+                    <p>📘 ${escapeHTML(doc.subject || "General")}</p>
+                    <p>${escapeHTML(doc.description || "Study material")}</p>
+                    <p>${formatFileSize(doc.file_size || 0)}</p>
+                    <div class="pdf-actions">
+                        <button type="button"
+                            class="secondary-btn"
+                            data-action="public-read"
+                            data-id="${escapeHTML(doc.id)}">
+                            Read
+                        </button>
+                        <button type="button"
+                            class="secondary-btn"
+                            data-action="public-download"
+                            data-id="${escapeHTML(doc.id)}">
+                            Download
+                        </button>
+                    </div>
+                </article>
+            `;
+        }).join("");
+
+    } catch (error) {
+        console.error("Public student profile error:", error);
+        pdfContainer.innerHTML = "<p>Couldn't load this student's study materials. Please try again.</p>";
+        statusElement.textContent = error.message || "An error occurred.";
+    }
+}
+
+document.getElementById("closePublicStudentProfileBtn")
+    .addEventListener("click", function () {
+        document.getElementById("publicStudentProfilePage").hidden = true;
+
+        Object.keys(pages).forEach(function (key) {
+            pages[key].hidden = key !== "library";
+        });
+
+        document.getElementById("libraryPage").scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    });
+
+document.getElementById("publicStudentPDFs")
+    .addEventListener("click", async function (event) {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const documentId = button.dataset.id;
+
+        const doc = documents.find(function (item) {
+            return item.id === documentId;
+        });
+
+        if (!doc) {
+            alert("This PDF isn't available in the main library list yet.");
+            return;
+        }
+
+        const url = getPublicPdfUrl(doc.storage_path);
+
+        if (action === "public-read") {
+            await openPdfReader(doc, url);
+            return;
+        }
+
+        if (action === "public-download") {
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = doc.original_filename || "document.pdf";
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+    });
 
 async function openPdfReader(doc, url) {
     if (!window.pdfjsLib) {
