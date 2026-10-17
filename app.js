@@ -431,6 +431,7 @@ uploadForm.addEventListener("submit", async function (event) {
 // 9. LOAD PDF LIBRARY
 // ============================================
 
+
 async function loadDocuments() {
     if (!currentUser) return;
 
@@ -439,16 +440,19 @@ async function loadDocuments() {
 
     try {
         const { data, error } = await db
-            .from("pdf_documents")
-            .select(
-                "id, title, subject, description, storage_path, original_filename, file_size, uploader_id, created_at"
-            )
-            .eq("is_published", true)
+            .from("published_pdfs_with_authors")
+            .select("*")
             .order("created_at", { ascending: false });
 
         if (error) throw error;
 
-        documents = data || [];
+        documents = (data || []).map(function (doc) {
+            return {
+                ...doc,
+                author_name: doc.author_name || "GRADE X Student",
+                author_avatar: doc.author_avatar || ""
+            };
+        });
 
         renderDocuments();
 
@@ -1258,13 +1262,27 @@ saveProfileBtn.addEventListener("click", async function () {
         }
 
         const { data, error } = await db.auth.updateUser({
-            data: {
-                display_name: displayName,
-                avatar_url: avatarUrl
-            }
-        });
+    data: {
+        display_name: displayName,
+        avatar_url: avatarUrl
+    }
+});
 
-        if (error) throw error;
+if (error) throw error;
+
+const { error: profileError } = await db
+    .from("profiles")
+    .upsert({
+        id: currentUser.id,
+        full_name: displayName,
+        email: currentUser.email,
+        display_name: displayName,
+        avatar_url: avatarUrl
+    }, {
+        onConflict: "id"
+    });
+
+if (profileError) throw profileError;
 
         if (data.user) {
             currentUser = data.user;
