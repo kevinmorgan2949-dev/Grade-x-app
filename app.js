@@ -1099,3 +1099,13 @@ nextQuestion.addEventListener("click", function () {
 restoreSession();
 
 console.log("GRADE X application initialized.");
+// GRADE X menu button
+document.getElementById("menuBtn")?.addEventListener("click", () => {
+    const menu = document.getElementById("menuPanel");
+    
+    if (menu) {
+        menu.hidden = !menu.hidden;
+    } else {
+        console.log("GRADE X: Menu panel not found.");
+    }
+});
