@@ -1470,6 +1470,19 @@ const { error: profileError } = await db
         onConflict: "id"
     });
 
+const { error: publicProfileError } = await db
+    .from("student_public_profiles")
+    .upsert({
+        id: currentUser.id,
+        full_name: displayName,
+        display_name: displayName,
+        avatar_url: avatarUrl
+    }, {
+        onConflict: "id"
+    });
+
+if (publicProfileError) throw publicProfileError;
+
 if (profileError) throw profileError;
 
         if (data.user) {
