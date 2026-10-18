@@ -1,804 +1,999 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#100d24">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#241044">
+<meta name="description" content="GRADE X Arena - Learn, connect and compete.">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+<title>GRADE X Arena</title>
 
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-    <title>GRADE X Arena</title>
+<style>
+:root {
+  color-scheme: dark;
+  --purple: #7628e8;
+  --blue: #2878ff;
+  --text: #ffffff;
+  --muted: #ded3f7;
+  --border: rgba(255,255,255,.15);
+  --soft: rgba(151,94,255,.18);
+  --panel: rgba(30,15,58,.88);
+}
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding-bottom: calc(78px + env(safe-area-inset-bottom));
+  background: linear-gradient(135deg,#10051f 0%,#241044 35%,#35116b 65%,#101b49 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,input,textarea,select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+[hidden] { display: none !important; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  min-height: 61px;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(20,7,39,.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(15px);
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg,var(--purple),var(--blue));
+  color: white;
+  font-size: 23px;
+  font-weight: 900;
+}
+.brand h1 { margin: 0; font-size: 19px; letter-spacing: -.5px; }
+.brand h1 span { color: #a985ff; }
+.brand p { margin: 3px 0 0; font-size: 9px; letter-spacing: 1px; color: var(--muted); }
+.topbar-actions { display: flex; gap: 8px; }
+
+.icon-button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--soft);
+  color: white;
+  font-size: 20px;
+}
+
+main { width: 100%; max-width: 680px; margin: auto; }
+#appSection { width: 100%; }
+.social-view,.page { min-height: 55vh; }
+
+.page-heading,.section-heading { padding: 20px 16px 12px; }
+.page-heading h2,.section-heading h2 { margin: 0 0 5px; font-size: 22px; }
+.page-heading p,.section-heading p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.feed-welcome { padding: 17px 16px 10px; }
+.feed-welcome h2 { margin: 0 0 5px; font-size: 21px; }
+.feed-welcome p { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* STATUS STORIES */
+.stories-section { padding: 14px 0 16px; border-bottom: 1px solid var(--border); }
+.stories-heading { display: flex; justify-content: space-between; padding: 0 16px 12px; }
+.stories-heading h3 { margin: 0; font-size: 15px; }
+.stories-heading span { color: var(--muted); font-size: 11px; }
+.stories-row { display: flex; gap: 16px; overflow-x: auto; padding: 0 16px 5px; scrollbar-width: none; }
+.stories-row::-webkit-scrollbar { display: none; }
+.story-item { flex: 0 0 61px; width: 61px; text-align: center; }
+.story-item button { padding: 0; width: 100%; border: 0; background: transparent; color: white; }
+.story-ring {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  padding: 3px;
+  margin: auto auto 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#8038f0,#2c83f7,#d653c9);
+}
+.story-avatar {
+  width: 100%;
+  height: 100%;
+  border: 3px solid #241044;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #35165c;
+  color: white;
+  font-size: 22px;
+}
+.story-item p { margin: 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.story-add {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 21px;
+  height: 21px;
+  border: 2px solid #241044;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  display: grid;
+  place-items: center;
+}
+
+/* FEED */
+.quick-compose { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.gx-avatar {
+  flex: 0 0 41px;
+  width: 41px;
+  height: 41px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #4a2476;
+  color: white;
+  font-size: 20px;
+}
+.gx-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.quick-compose button {
+  flex: 1;
+  padding: 12px 14px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 25px;
+  background: rgba(255,255,255,.06);
+  color: var(--muted);
+  font-size: 12px;
+}
+.quick-compose .compose-plus { flex: 0 0 28px; padding: 0; border: 0; font-size: 24px; color: #b99aff; background: transparent; }
+.feed-post { padding: 17px 16px; border-bottom: 1px solid var(--border); }
+.post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.post-author { flex: 1; }
+.post-author strong { display: block; font-size: 13px; }
+.post-author span { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+.post-menu { border: 0; background: transparent; color: var(--muted); font-size: 20px; }
+.post-content { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+.post-actions { display: flex; gap: 20px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.post-actions button { border: 0; background: transparent; color: var(--muted); font-size: 13px; }
+.empty-feed { padding: 32px 20px; text-align: center; }
+.empty-icon { width: 62px; height: 62px; margin: 0 auto 14px; display: grid; place-items: center; border-radius: 21px; background: var(--soft); font-size: 29px; }
+.empty-feed h3 { margin: 0 0 8px; font-size: 16px; }
+.empty-feed p { max-width: 320px; margin: 0 auto 16px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+/* BUTTONS AND CARDS */
+.primary-btn,.gx-primary {
+  border: 0;
+  border-radius: 11px;
+  padding: 12px 15px;
+  color: white;
+  font-weight: 700;
+  background: linear-gradient(110deg,var(--purple),var(--blue));
+}
+.secondary-btn,.gx-secondary {
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px 14px;
+  background: rgba(255,255,255,.07);
+  color: #c9b4ff;
+  font-weight: 650;
+}
+.notice-card,.upload-card,.reader-card,.bot-card,.wallet-card,.auth-card,.profile-card {
+  margin: 12px 16px;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+.notice-card h3,.upload-card h3 { margin-top: 0; }
+.notice-card p,.upload-card p { font-size: 13px; line-height: 1.7; }
+.small-note,.status-message { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.shortcut-list { display: grid; gap: 10px; padding: 0 16px; }
+.shortcut-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(30,15,58,.88);
+  color: white;
+  text-align: left;
+}
+.shortcut-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 12px; background: var(--soft); font-size: 21px; }
+.shortcut-item strong { display: block; font-size: 13px; }
+.shortcut-item small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+.feature-note { margin: 16px; padding: 14px; border: 1px solid var(--border); border-radius: 13px; background: var(--soft); color: #e5d9ff; font-size: 12px; line-height: 1.7; }
+
+/* CREATE AND MESSAGES */
+.create-card { margin: 12px 16px; padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--panel); }
+.create-card h3 { margin-top: 0; }
+.create-card p { color: var(--muted); font-size: 13px; line-height: 1.7; }
+.create-card textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; resize: vertical; background: rgba(255,255,255,.06); color: white; }
+.create-actions { display: grid; gap: 10px; margin-top: 12px; }
+.messages-empty { padding: 45px 24px; text-align: center; }
+.messages-empty .big-icon { font-size: 44px; }
+.messages-empty h3 { margin: 12px 0 8px; }
+.messages-empty p { max-width: 310px; margin: auto; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+/* PROFILE */
+.profile-cover { height: 105px; background: linear-gradient(120deg,#682ab5,#292e78,#2478bd); }
+.profile-social-card { padding: 0 17px 20px; }
+.profile-social-top { display: flex; justify-content: space-between; align-items: flex-end; margin-top: -39px; gap: 10px; }
+.profile-social-avatar { width: 82px; height: 82px; flex: 0 0 82px; display: grid; place-items: center; overflow: hidden; border: 4px solid #241044; border-radius: 50%; background: #35165c; font-size: 30px; }
+.profile-social-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-social-card h2 { margin: 12px 0 4px; font-size: 20px; }
+.profile-handle { color: var(--muted); font-size: 13px; }
+.profile-bio { font-size: 13px; line-height: 1.7; }
+.profile-stats { display: flex; gap: 24px; margin: 16px 0; }
+.profile-stats strong,.profile-stats span { display: block; }
+.profile-stats strong { font-size: 15px; }
+.profile-stats span { margin-top: 4px; color: var(--muted); font-size: 11px; }
+.profile-menu { padding: 12px 16px 20px; border-top: 1px solid var(--border); }
+.profile-menu h3 { font-size: 15px; }
+.profile-menu-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 2px; text-align: left; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: white; }
+.menu-emoji { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border-radius: 11px; background: var(--soft); font-size: 19px; }
+.menu-copy { flex: 1; }
+.menu-copy strong { display: block; font-size: 13px; }
+.menu-copy small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+.chevron { color: #c1a9ee; font-size: 20px; }
+
+/* FIVE MAIN TABS */
+.social-bottom-nav {
+  position: fixed;
+  z-index: 100;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  min-height: 64px;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  background: rgba(20,7,39,.97);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(15px);
+}
+.social-nav-button { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; background: transparent; color: #c6b9df; font-size: 10px; }
+.social-nav-icon { font-size: 23px; line-height: 1.1; }
+.social-nav-button.active { color: #bd9bff; font-weight: 800; }
+.social-nav-button.create-nav .social-nav-icon { width: 34px; height: 29px; display: grid; place-items: center; border-radius: 9px; background: linear-gradient(135deg,var(--purple),var(--blue)); color: white; font-size: 24px; }
+.legacy-nav { display: none !important; }
+
+/* AUTHENTICATION */
+.auth-section { padding: 20px 16px 40px; }
+.hero { padding: 18px 0; }
+.hero h2 { font-size: clamp(30px,8vw,42px); line-height: 1.15; letter-spacing: -1px; }
+.hero h2 span { color: #b99aff; }
+.badge { display: inline-block; padding: 7px 10px; border-radius: 20px; background: var(--soft); color: #c9b4ff; font-size: 10px; font-weight: 800; }
+.auth-card input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.06); color: white; }
+.auth-card form { display: grid; gap: 10px; }
+.auth-card .primary-btn { width: 100%; }
+.text-btn { padding: 12px 0 0; border: 0; background: transparent; color: #c9b4ff; }
+label { font-size: 12px; }
+
+/* EXISTING LIBRARY, BOT, ARENA, WALLET AND PROFILE */
+.page { width: 100%; padding-bottom: 20px; }
+.upload-card form { display: grid; gap: 9px; }
+.upload-card input,.upload-card select,.upload-card textarea,.profile-card input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #21123c;
+  color: white;
+}
+.upload-card textarea { min-height: 85px; }
+.pdf-list { padding: 0 16px; }
+.pdf-card { margin: 10px 0; padding: 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); }
+.empty-state { padding: 26px 12px; text-align: center; color: var(--muted); }
+.empty-state > span { font-size: 32px; }
+.reader-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#readerPages canvas { max-width: 100%; height: auto !important; }
+.bot-card { text-align: center; }
+.bot-avatar { font-size: 38px; }
+.pdf-study-picker { padding: 12px; text-align: left; background: var(--soft); border-radius: 12px; }
+.pdf-study-picker select { width: 100%; margin-top: 8px; padding: 11px; border: 1px solid var(--border); border-radius: 10px; background: #21123c; color: white; }
+.chat-messages { min-height: 130px; max-height: 420px; overflow-y: auto; text-align: left; padding: 12px 0; }
+.bot-message,.user-message { margin: 8px 0; padding: 11px 13px; border-radius: 13px; background: rgba(118,40,232,.25); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.user-message { background: rgba(40,120,255,.25); }
+.chat-form { display: flex; gap: 8px; }
+.chat-form input { flex: 1; min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #21123c; color: white; }
+.chat-form button { width: 46px; border: 0; border-radius: 12px; color: white; background: var(--purple); }
+.arena-games-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; padding: 0 16px; }
+.arena-game-card { display: flex; flex-direction: column; gap: 10px; }
+.arena-game-card h3 { margin: 0; font-size: 15px; }
+.arena-game-icon { font-size: 32px; }
+.arena-back-btn { margin: 15px 16px 0; }
+.wallet-card { background: linear-gradient(135deg,rgba(118,40,232,.35),rgba(40,120,255,.25)); }
+.wallet-card h2 { color: #c9b4ff; font-size: 30px; }
+.profile-card { text-align: center; }
+.profile-picture-area { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+.profile-picture,.profile-avatar { width: 88px; height: 88px; margin: auto; border-radius: 50%; object-fit: cover; display: grid; place-items: center; background: var(--soft); color: white; font-size: 30px; }
+.change-photo-btn { color: #c9b4ff; font-size: 12px; cursor: pointer; }
+.profile-card > label { display: block; text-align: left; margin: 15px 0 7px; font-size: 12px; font-weight: bold; }
+.profile-card > .primary-btn { width: 100%; margin-top: 14px; }
+.profile-stat { display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.signout-btn { margin: 15px 16px; padding: 12px 16px; border: 1px solid rgba(255,100,150,.3); border-radius: 11px; background: rgba(255,100,150,.1); color: #ff9fbe; }
+footer { padding: 22px 16px; text-align: center; color: var(--muted); font-size: 11px; }
+
+/* LOADING SCREEN */
+#gx-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,#10051f,#35116b,#101b49);
+  color: white;
+  transition: opacity .7s ease,visibility .7s ease;
+}
+#gx-splash.gx-hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.gx-logo { text-align: center; font-weight: 900; letter-spacing: 3px; }
+.gx-logo-x { font-size: 34px; color: #c29fff; }
+.gx-logo-arena { margin-top: 5px; font-size: 13px; color: #76a9ff; }
+.gx-line { width: 130px; height: 3px; margin: 20px 0; border-radius: 5px; background: linear-gradient(90deg,var(--purple),var(--blue)); }
+.gx-tagline { font-size: 10px; letter-spacing: 2px; color: var(--muted); }
+.gx-loading { display: flex; gap: 6px; margin: 15px 0; }
+.gx-loading span { width: 7px; height: 7px; border-radius: 50%; background: #b99aff; animation: pulse .8s infinite alternate; }
+.gx-loading span:nth-child(2) { animation-delay: .2s; }
+.gx-loading span:nth-child(3) { animation-delay: .4s; }
+@keyframes pulse { from { opacity: .25; transform: translateY(0); } to { opacity: 1; transform: translateY(-5px); } }
+
+@media(min-width:700px) {
+  main { border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 80vh; }
+  .topbar { padding-left: max(20px,calc((100% - 680px)/2)); padding-right: max(20px,calc((100% - 680px)/2)); }
+  .social-bottom-nav { left: 50%; right: auto; width: 100%; max-width: 680px; transform: translateX(-50%); }
+}
+@media(max-width:380px) {
+  .brand h1 { font-size: 17px; }
+  .brand p { font-size: 8px; letter-spacing: .4px; }
+  .arena-games-grid { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 
 <body>
 
-<!-- OPENING SCREEN -->
 <div id="gx-splash" aria-label="Loading GRADE X Arena">
-    <div class="gx-logo">
-        <div class="gx-logo-x">GRADE X</div>
-        <div class="gx-logo-arena">ARENA</div>
-    </div>
-
-    <div class="gx-line"></div>
-
-    <p class="gx-tagline">YOUR KNOWLEDGE. YOUR POWER.</p>
-
-    <div class="gx-loading" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-
-    <p>PREPARE TO RISE</p>
+  <div class="gx-logo">
+    <div class="gx-logo-x">GRADE X</div>
+    <div class="gx-logo-arena">ARENA</div>
+  </div>
+  <div class="gx-line"></div>
+  <p class="gx-tagline">YOUR KNOWLEDGE. YOUR POWER.</p>
+  <div class="gx-loading"><span></span><span></span><span></span></div>
+  <p>PREPARE TO RISE</p>
 </div>
 
 <header class="topbar">
-    <div class="brand">
-        <div class="brand-icon">X</div>
-        <div>
-            <h1>GRADE <span>X</span></h1>
-            <p>YOUR KNOWLEDGE. YOUR POWER.</p>
-        </div>
+  <div class="brand">
+    <div class="brand-icon">X</div>
+    <div>
+      <h1>GRADE <span>X</span></h1>
+      <p>YOUR KNOWLEDGE. YOUR POWER.</p>
     </div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="icon-button" id="gxNotificationsButton" aria-label="Notifications">♡</button>
+    <button type="button" class="icon-button" id="gxSettingsButton" aria-label="Settings">☰</button>
+  </div>
 </header>
 
 <main>
 
-    <!-- SIGN IN / SIGN UP -->
-    <section id="authSection" class="auth-section">
-        <div class="hero">
-            <span class="badge">WELCOME TO THE ARENA</span>
-            <h2>Your Classroom.<br><span>Your Rules.</span></h2>
-            <p>Read, learn, compete and grow with GRADE X.</p>
-        </div>
-
-        <div class="auth-card">
-            <h2 id="authTitle">Join GRADE X</h2>
-
-            <p id="authMessage">
-                Create your student account to get started.
-            </p>
-
-            <form id="authForm">
-                <label for="email">Email address</label>
-                <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    placeholder="you@example.com"
-                    autocomplete="email"
-                    required
-                >
-
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="At least 6 characters"
-                    minlength="6"
-                    autocomplete="current-password"
-                    required
-                >
-
-                <button
-                    id="authSubmit"
-                    type="submit"
-                    class="primary-btn"
-                >
-                    Create Account
-                </button>
-            </form>
-
-            <p
-                id="authStatus"
-                class="status-message"
-                role="status"
-                aria-live="polite"
-            ></p>
-
-            <button
-                id="authToggle"
-                type="button"
-                class="text-btn"
-            >
-                Already have an account? Sign in
-            </button>
-        </div>
-    </section>
-
-    <!-- MAIN APP -->
-    <section id="appSection" hidden>
-
-        <section class="welcome-card">
-            <div>
-                <span class="badge">YOUR LEARNING SPACE</span>
-                <h2>
-                    Welcome,
-                    <span id="studentEmail">Student</span>!
-                </h2>
-                <p>Knowledge is your greatest investment.</p>
-            </div>
-        </section>
-
-        <!-- COMMUNITY -->
-        <div class="notice-card community-card">
-            <h3>💜 GRADE X Community</h3>
-
-            <p>
-                Stay updated with GX News, announcements, student
-                discussions, trends and community updates.
-            </p>
-
-            <a
-                href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="primary-btn community-link"
-            >
-                Visit GRADE X Community ↗
-            </a>
-        </div>
-
-        <!-- NAVIGATION -->
-        <nav class="main-nav" aria-label="Main navigation">
-            <button
-                type="button"
-                class="nav-btn active"
-                data-page="library"
-            >
-                <span class="nav-icon">📚</span>
-                <span class="nav-label">Library</span>
-            </button>
-
-            <button
-                type="button"
-                class="nav-btn"
-                data-page="bot"
-            >
-                <span class="nav-icon">🤖</span>
-                <span class="nav-label">Grade Bot</span>
-            </button>
-
-            <button
-                type="button"
-                class="nav-btn"
-                data-page="arena"
-            >
-                <span class="nav-icon">🏆</span>
-                <span class="nav-label">Arena</span>
-            </button>
-
-            <button
-                type="button"
-                class="nav-btn"
-                data-page="wallet"
-            >
-                <span class="nav-icon">💰</span>
-                <span class="nav-label">Wallet</span>
-            </button>
-
-            <button
-                type="button"
-                class="nav-btn"
-                data-page="comingSoon"
-            >
-                <span class="nav-icon">🚀</span>
-                <span class="nav-label">More</span>
-            </button>
-
-            <button
-                type="button"
-                class="nav-btn"
-                data-page="profile"
-            >
-                <span class="nav-icon">👤</span>
-                <span class="nav-label">Profile</span>
-            </button>
-        </nav>
-
-        <!-- LIBRARY -->
-        <section id="libraryPage" class="page">
-            <div class="section-heading">
-                <div>
-                    <h2>GRADE X Library</h2>
-                    <p>Discover and share learning materials.</p>
-                </div>
-            </div>
-
-            <div class="upload-card">
-                <h3>📤 Upload a PDF</h3>
-                <p>Share useful notes, textbooks and study materials.</p>
-
-                <form id="uploadForm">
-                    <label for="pdfTitle">Document title</label>
-                    <input
-                        id="pdfTitle"
-                        type="text"
-                        placeholder="e.g. Introduction to Physics"
-                        required
-                    >
-
-                    <label for="pdfSubject">Subject</label>
-                    <select id="pdfSubject" required>
-                        <option value="">Choose a subject</option>
-                        <option>Mathematics</option>
-                        <option>Physics</option>
-                        <option>Chemistry</option>
-                        <option>Biology</option>
-                        <option>English</option>
-                        <option>Petroleum Engineering</option>
-                        <option>Computer Science</option>
-                        <option>Other</option>
-                    </select>
-
-                    <label for="pdfDescription">Description</label>
-                    <textarea
-                        id="pdfDescription"
-                        placeholder="What will students learn from this document?"
-                    ></textarea>
-
-                    <label for="pdfFile">Choose PDF file</label>
-                    <input
-                        id="pdfFile"
-                        type="file"
-                        accept="application/pdf,.pdf"
-                        required
-                    >
-
-                    <button
-                        id="uploadBtn"
-                        type="submit"
-                        class="primary-btn"
-                    >
-                        Upload to Library
-                    </button>
-                </form>
-
-                <p
-                    id="uploadStatus"
-                    class="status-message"
-                    role="status"
-                    aria-live="polite"
-                ></p>
-            </div>
-
-            <div class="section-heading">
-                <div>
-                    <h2>Explore Materials</h2>
-                    <p>Study resources shared by students.</p>
-                </div>
-            </div>
-
-            <input
-                id="searchPDF"
-                type="search"
-                placeholder="🔎 Search documents or subjects..."
-                aria-label="Search documents or subjects"
-            >
-
-            <div id="pdfList" class="pdf-list">
-                <div class="empty-state">
-                    <span>📚</span>
-                    <h3>Your library starts here</h3>
-                    <p>
-                        Documents uploaded to the cloud will appear here.
-                    </p>
-                </div>
-            </div>
-
-            <div id="pdfReader" class="reader-card" hidden>
-                <div class="reader-heading">
-                    <h3 id="readerTitle">Document Reader</h3>
-
-                    <button
-                        id="closeReader"
-                        type="button"
-                        class="secondary-btn"
-                    >
-                        Close
-                    </button>
-                </div>
-
-                <div id="readerPages"></div>
-            </div>
-        </section>
-
-        <!-- GRADE BOT -->
-        <section id="botPage" class="page" hidden>
-            <div class="section-heading">
-                <div>
-                    <h2>GRADE BOT</h2>
-                    <p>Your personal AI study assistant.</p>
-                </div>
-            </div>
-
-            <div class="bot-card">
-                <div class="bot-avatar">🤖</div>
-
-                <h3>Meet Grade Bot</h3>
-
-                <p>
-                    Ask questions, explore concepts and study from your PDFs.
-                </p>
-
-                <div class="pdf-study-picker">
-                    <label for="botPDF">
-                        📚 Study from a PDF in your Library
-                    </label>
-
-                    <select id="botPDF">
-                        <option value="">
-                            General questions (no PDF selected)
-                        </option>
-                    </select>
-
-                    <p id="botPDFStatus" class="small-note">
-                        Select a document to study from it.
-                    </p>
-                </div>
-
-                <div id="chatMessages" class="chat-messages">
-                    <div class="bot-message">
-                        Hey student! 👋 I'm Grade Bot. Select a PDF from your
-                        Library, then ask me questions about it!
-                    </div>
-                </div>
-
-                <form id="chatForm" class="chat-form">
-                    <input
-                        id="chatInput"
-                        type="text"
-                        placeholder="Ask about your PDF..."
-                        autocomplete="off"
-                        required
-                    >
-
-                    <button type="submit" aria-label="Send message">
-                        ➤
-                    </button>
-                </form>
-
-                <p class="small-note">
-                    Select a PDF to ask Grade Bot questions about its contents.
-                </p>
-            </div>
-        </section>
-
-        <!-- ARENA QUIZ -->
-        <section id="arenaPage" class="page" hidden>
-            <div class="section-heading">
-                <div>
-                    <h2>🏆 GRADE X Arena</h2>
-                    <p>Test your knowledge and improve your skills.</p>
-                </div>
-            </div>
-
-            <div class="notice-card">
-                <h3>⚔️ Knowledge Challenge</h3>
-
-                <p>
-                    Ready to test what you know? Start a quiz and challenge
-                    yourself.
-                </p>
-
-                <button
-                    id="startQuiz"
-                    type="button"
-                    class="primary-btn"
-                >
-                    Start Quiz
-                </button>
-            </div>
-
-            <div id="quizArea" class="notice-card" hidden>
-                <p id="quizProgress">Question 1</p>
-
-                <h3 id="quizQuestion"></h3>
-
-                <div id="quizOptions"></div>
-
-                <p id="quizFeedback" role="status" aria-live="polite"></p>
-
-                <button
-                    id="nextQuestion"
-                    type="button"
-                    class="primary-btn"
-                    hidden
-                >
-                    Next Question
-                </button>
-            </div>
-        </section>
-
-        <!-- WALLET -->
-        <section id="walletPage" class="page" hidden>
-            <div class="section-heading">
-                <div>
-                    <h2>GRADE X Wallet</h2>
-                    <p>Your account and rewards dashboard.</p>
-                </div>
-            </div>
-
-            <div class="wallet-card">
-                <p>DEMO BALANCE</p>
-                <h2>₦0.00</h2>
-                <span>Real-money transactions are not enabled.</span>
-            </div>
-
-            <div class="wallet-actions">
-                <button
-                    type="button"
-                    class="secondary-btn"
-                    disabled
-                >
-                    + Deposit
-                </button>
-
-                <button
-                    type="button"
-                    class="secondary-btn"
-                    disabled
-                >
-                    Withdraw
-                </button>
-            </div>
-
-            <div class="notice-card">
-                <h3>💡 Coming Soon</h3>
-
-                <p>
-                    Secure deposits, eligible reading rewards and withdrawals
-                    require verified payment and anti-fraud systems.
-                </p>
-            </div>
-        </section>
-
-        <!-- MORE / ROADMAP -->
-        <section id="comingSoonPage" class="page" hidden>
-            <div class="section-heading">
-                <div>
-                    <h2>🚀 The Future of GRADE X</h2>
-                    <p>Here is what we are building for you.</p>
-                </div>
-            </div>
-
-            <div class="notice-card">
-                <h3>📅 Development Roadmap</h3>
-                <p>
-                    Release dates are estimates and may change during
-                    development.
-                </p>
-            </div>
-
-            <div class="notice-card">
-                <h3>📩 Contact Us</h3>
-
-                <p>
-                    Get help, report issues and send suggestions to the
-                    GRADE X team.
-                </p>
-
-                <p>
-                    <a href="mailto:gradexarena@gmail.com">
-                        ✉️ gradexarena@gmail.com
-                    </a>
-                </p>
-
-                <p>
-                    <a
-                        href="https://wa.me/2347039690294"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        💬 Contact Support on WhatsApp
-                    </a>
-                </p>
-            </div>
-
-            <div class="notice-card">
-                <h3>💰 GX Wallet Upgrades</h3>
-                <p>
-                    Planned balance dashboard, transaction history and
-                    eligible rewards.
-                </p>
-                <p><strong>Status:</strong> Planned</p>
-            </div>
-
-            <div class="notice-card">
-                <h3>🏆 Verified Leaderboard</h3>
-                <p>
-                    Compare verified quiz scores and track competitive
-                    rankings.
-                </p>
-                <p><strong>Status:</strong> Planned</p>
-            </div>
-
-            <div class="notice-card">
-                <h3>👤 Student Profile &amp; Learning Progress</h3>
-                <p>
-                    View your profile, quiz history, scores and learning
-                    progress.
-                </p>
-                <p><strong>Status:</strong> In development</p>
-            </div>
-
-            <div class="notice-card">
-                <h3>📖 PDF Page-Reading Rewards</h3>
-                <p>
-                    Potential rewards for eligible reading activity, subject
-                    to anti-fraud checks.
-                </p>
-                <p><strong>Status:</strong> Planned</p>
-            </div>
-
-            <div class="notice-card">
-                <h3>⚔️ Stake Arena</h3>
-                <p>
-                    Competitive challenges and rankings, subject to safeguards
-                    and applicable laws.
-                </p>
-                <p><strong>Status:</strong> Planned</p>
-            </div>
-
-            <div class="notice-card">
-                <h3>💜 Built for Students</h3>
-                <p>
-                    Our priority is to make learning useful, accessible
-                    and fair.
-                </p>
-            </div>
-        </section>
-
-        <!-- MY PROFILE -->
-        <section id="profilePage" class="page" hidden>
-            <div class="section-heading">
-                <div>
-                    <h2>👤 My Profile</h2>
-                    <p>Manage your GRADE X student account.</p>
-                </div>
-            </div>
-
-            <div class="notice-card profile-card">
-                <div class="profile-picture-area">
-                    <img
-                        id="profileAvatarImage"
-                        class="profile-picture"
-                        src=""
-                        alt="Student profile picture"
-                        hidden
-                    >
-
-                    <div
-                        id="profileAvatarFallback"
-                        class="profile-avatar"
-                    >
-                        👤
-                    </div>
-
-                    <label
-                        for="profilePictureInput"
-                        class="change-photo-btn"
-                    >
-                        📷 Change Picture
-                    </label>
-
-                    <input
-                        type="file"
-                        id="profilePictureInput"
-                        accept="image/png,image/jpeg,image/webp,image/gif"
-                        hidden
-                    >
-                </div>
-
-                <h2 id="profileName">GRADE X Student</h2>
-
-                <p id="profileEmail">Student email</p>
-
-                <div class="profile-badge">🎓 GRADE X Student</div>
-
-                <label for="profileNameInput">Display Name</label>
-
-                <input
-                    type="text"
-                    id="profileNameInput"
-                    placeholder="Enter your display name"
-                    maxlength="60"
-                >
-
-                <label for="profileUsernameInput">Username</label>
-
-                <input
-                    type="text"
-                    id="profileUsernameInput"
-                    placeholder="Choose a username"
-                    maxlength="30"
-                    autocomplete="username"
-                >
-
-                <button
-                    type="button"
-                    id="saveProfileBtn"
-                    class="primary-btn"
-                >
-                    💾 Save Changes
-                </button>
-
-                <p
-                    id="profileStatus"
-                    role="status"
-                    aria-live="polite"
-                ></p>
-            </div>
-
-            <div class="notice-card">
-                <h3>📚 Learning Progress</h3>
-
-                <p>
-                    Keep learning, reading PDFs and practising quizzes.
-                </p>
-
-                <div class="profile-stat">
-                    <span>📖 PDF Library</span>
-                    <span>Study and learn</span>
-                </div>
-
-                <div class="profile-stat">
-                    <span>🤖 Grade Bot</span>
-                    <span>Ask questions</span>
-                </div>
-
-                <div class="profile-stat">
-                    <span>🏆 Arena</span>
-                    <span>Practise quizzes</span>
-                </div>
-            </div>
-
-            <div class="notice-card">
-                <h3>⚙️ Account Settings</h3>
-
-                <p>Your GRADE X account and sign-out options.</p>
-
-                <button
-                    type="button"
-                    class="secondary-btn"
-                    onclick="document.getElementById('signOutBtn').click()"
-                >
-                    🚪 Sign Out
-                </button>
-            </div>
-        </section>
-
-        <!-- PUBLIC STUDENT PROFILE -->
-        <section id="publicStudentProfilePage" class="page" hidden>
-            <div class="section-heading">
-                <div>
-                    <h2>👤 Student Profile</h2>
-                    <p>View this student's public profile.</p>
-                </div>
-            </div>
-
-            <div class="notice-card profile-card">
-                <button
-                    type="button"
-                    class="secondary-btn"
-                    id="closePublicStudentProfileBtn"
-                >
-                    ← Back to Library
-                </button>
-
-                <div class="profile-picture-area">
-                    <img
-                        id="publicStudentAvatar"
-                        class="profile-picture"
-                        src=""
-                        alt="Student profile picture"
-                        hidden
-                    >
-
-                    <div
-                        id="publicStudentAvatarFallback"
-                        class="profile-avatar"
-                    >
-                        👤
-                    </div>
-                </div>
-
-                <h2 id="publicStudentName">GRADE X Student</h2>
-
-                <div class="profile-badge">🎓 GRADE X Student</div>
-
-                <p id="publicStudentJoined">GRADE X student</p>
-
-                <div class="notice-card">
-                    <h3>📚 Published Study Materials</h3>
-                    <p>PDFs shared by this student.</p>
-
-                    <div id="publicStudentPDFs">
-                        <p>Loading study materials...</p>
-                    </div>
-                </div>
-
-                <p
-                    id="publicStudentProfileStatus"
-                    role="status"
-                    aria-live="polite"
-                ></p>
-            </div>
-        </section>
-
-        <!-- SIGN OUT -->
-        <button
-            id="signOutBtn"
-            type="button"
-            class="signout-btn"
-        >
-            Sign Out
+<!-- AUTHENTICATION -->
+<section id="authSection" class="auth-section">
+  <div class="hero">
+    <span class="badge">WELCOME TO THE ARENA</span>
+    <h2>Your Classroom.<br><span>Your Rules.</span></h2>
+    <p>Read, learn, compete and grow with GRADE X.</p>
+  </div>
+  <div class="auth-card">
+    <h2 id="authTitle">Join GRADE X</h2>
+    <p id="authMessage">Create your student account to get started.</p>
+    <form id="authForm">
+      <label for="email">Email address</label>
+      <input id="email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" placeholder="Your password" minlength="6" autocomplete="current-password" required>
+      <button id="authSubmit" type="submit" class="primary-btn">Create Account</button>
+    </form>
+    <p id="authStatus" class="status-message" role="status" aria-live="polite"></p>
+    <button id="authToggle" type="button" class="text-btn">Already have an account? Sign in</button>
+  </div>
+</section>
+
+<section id="appSection" hidden>
+
+<!-- HOME -->
+<section id="gxHomeView" class="social-view">
+  <div class="feed-welcome">
+    <h2>Welcome to GRADE X 👋</h2>
+    <p id="gxHomeGreeting">Your space to learn, connect and grow.</p>
+  </div>
+
+  <section class="stories-section">
+    <div class="stories-heading"><h3>Statuses</h3><span>Student updates</span></div>
+    <div class="stories-row">
+      <div class="story-item">
+        <button type="button" data-open-view="create">
+          <div class="story-ring"><div class="story-avatar">＋</div><span class="story-add">+</span></div>
+          <p>Your status</p>
         </button>
+      </div>
+      <div class="story-item"><button type="button" disabled><div class="story-ring"><div class="story-avatar">🎓</div></div><p>Students</p></button></div>
+      <div class="story-item"><button type="button" disabled><div class="story-ring"><div class="story-avatar">📚</div></div><p>Study</p></button></div>
+      <div class="story-item"><button type="button" disabled><div class="story-ring"><div class="story-avatar">🏆</div></div><p>Arena</p></button></div>
+    </div>
+  </section>
 
-    </section>
+  <div class="quick-compose">
+    <div class="gx-avatar" id="gxFeedAvatar">👤</div>
+    <button type="button" data-open-view="create">Share something with your student community...</button>
+    <button type="button" class="compose-plus" data-open-view="create" aria-label="Create post">＋</button>
+  </div>
+
+  <div class="feed-post">
+    <div class="empty-feed">
+      <div class="empty-icon">💜</div>
+      <h3>Your student feed starts here</h3>
+      <p>Posts from GRADE X students will appear here after the social feed is connected to Supabase.</p>
+      <button type="button" class="gx-primary" data-open-view="create">Create a Post</button>
+    </div>
+  </div>
+
+  <div class="page-heading"><h2>Your learning tools</h2><p>Everything you need, inside one community.</p></div>
+  <div class="shortcut-list">
+    <button type="button" class="shortcut-item" data-open-view="library"><span class="shortcut-icon">📚</span><span><strong>GRADE X Library</strong><small>Upload, discover and read PDFs</small></span></button>
+    <button type="button" class="shortcut-item" data-open-view="bot"><span class="shortcut-icon">🤖</span><span><strong>Grade Bot</strong><small>Ask questions about your study materials</small></span></button>
+    <button type="button" class="shortcut-item" data-open-view="arena"><span class="shortcut-icon">🎮</span><span><strong>Arena</strong><small>Play the knowledge quiz</small></span></button>
+    <button type="button" class="shortcut-item" data-open-view="store"><span class="shortcut-icon">🛍️</span><span><strong>GRADE X Store</strong><small>Explore the planned rewards Market</small></span></button>
+  </div>
+
+  <div class="notice-card">
+    <h3>💜 GRADE X Community</h3>
+    <p>Visit the public community website for news, discussions and announcements.</p>
+    <a href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/" target="_blank" rel="noopener noreferrer">Visit Community ↗</a>
+  </div>
+</section>
+
+<!-- SEARCH -->
+<section id="gxSearchView" class="social-view" hidden>
+  <div class="page-heading"><h2>Explore</h2><p>Find study resources and learning tools.</p></div>
+  <div style="padding:0 16px">
+    <input id="gxExploreSearch" type="search" placeholder="🔎 Search study materials..." aria-label="Search study materials" style="width:100%;padding:14px;border:1px solid var(--border);border-radius:13px;background:var(--panel);color:white">
+  </div>
+  <div class="page-heading"><h2>Discover GRADE X</h2></div>
+  <div class="shortcut-list">
+    <button type="button" class="shortcut-item" data-open-view="library"><span class="shortcut-icon">📚</span><span><strong>Study Materials</strong><small>Search the existing PDF Library</small></span></button>
+    <button type="button" class="shortcut-item" data-open-view="bot"><span class="shortcut-icon">🤖</span><span><strong>Grade Bot</strong><small>Study with your AI assistant</small></span></button>
+    <button type="button" class="shortcut-item" data-open-view="arena"><span class="shortcut-icon">🏆</span><span><strong>Arena Games</strong><small>Play the knowledge quiz</small></span></button>
+  </div>
+  <div class="feature-note">Searching student profiles and posts will be enabled when social search is connected to the backend.</div>
+</section>
+
+<!-- CREATE: STUDENT COMMUNITY FEED -->
+<section id="gxCreateView" class="social-view" hidden>
+  <div class="page-heading">
+    <h2>Community</h2>
+    <p>See what students are sharing.</p>
+  </div>
+  
+  <div id="gxCommunityFeed">
+    <div class="empty-feed">
+      <div class="empty-icon">💜</div>
+      <h3>Nothing here yet</h3>
+      <p>When students publish posts, they will appear here.</p>
+    </div>
+  </div>
+</section>
+<!-- MESSAGES -->
+<section id="gxMessagesView" class="social-view" hidden>
+  <div class="page-heading"><h2>Messages</h2><p>Your student conversations will appear here.</p></div>
+  <div class="messages-empty">
+    <div class="big-icon">💬</div>
+    <h3>Connect with your community</h3>
+    <p>Private messaging is not connected yet. Your conversations will appear here after secure messaging is implemented.</p>
+  </div>
+  <div class="feature-note">No messages have been created. This page does not send or receive private messages.</div>
+</section>
+
+<!-- SOCIAL PROFILE -->
+<section id="gxProfileView" class="social-view" hidden>
+  <div class="profile-cover"></div>
+  <div class="profile-social-card">
+    <div class="profile-social-top">
+      <div class="profile-social-avatar">
+        <img id="gxProfilePreviewImage" src="" alt="" hidden>
+        <span id="gxProfilePreviewFallback">👤</span>
+      </div>
+      <button type="button" class="gx-secondary" data-open-view="profileSettings">Edit Profile</button>
+    </div>
+    <h2 id="gxSocialProfileName">GRADE X Student</h2>
+    <div class="profile-handle" id="gxSocialProfileHandle">Your student account</div>
+    <p class="profile-bio">🎓 GRADE X student<br>📚 Learning • Knowledge • Growth</p>
+    <div class="profile-stats">
+      <div><strong>—</strong><span>Posts</span></div>
+      <div><strong>—</strong><span>Followers</span></div>
+      <div><strong>—</strong><span>Following</span></div>
+    </div>
+    <p class="small-note">Social statistics will appear after these features are implemented.</p>
+  </div>
+  <div class="profile-menu">
+    <h3>Your GRADE X</h3>
+    <button type="button" class="profile-menu-item" data-open-view="profileSettings"><span class="menu-emoji">⚙️</span><span class="menu-copy"><strong>Account Settings</strong><small>Edit your name and username</small></span><span class="chevron">›</span></button>
+    <button type="button" class="profile-menu-item" data-open-view="library"><span class="menu-emoji">📚</span><span class="menu-copy"><strong>My Learning Library</strong><small>Upload and read PDF materials</small></span><span class="chevron">›</span></button>
+    <button type="button" class="profile-menu-item" data-open-view="bot"><span class="menu-emoji">🤖</span><span class="menu-copy"><strong>Grade Bot</strong><small>Continue learning</small></span><span class="chevron">›</span></button>
+    <button type="button" class="profile-menu-item" data-open-view="arena"><span class="menu-emoji">🎮</span><span class="menu-copy"><strong>Arena Games</strong><small>Quiz and future games</small></span><span class="chevron">›</span></button>
+    <button type="button" class="profile-menu-item" data-open-view="store"><span class="menu-emoji">🛍️</span><span class="menu-copy"><strong>GRADE X Store</strong><small>Rewards and Library Market</small></span><span class="chevron">›</span></button>
+    <button type="button" class="profile-menu-item" data-open-view="coins"><span class="menu-emoji">🪙</span><span class="menu-copy"><strong>GRADE COINS Wallet</strong><small>View your planned coin balance</small></span><span class="chevron">›</span></button>
+    <button type="button" class="profile-menu-item" data-open-view="roadmap"><span class="menu-emoji">💜</span><span class="menu-copy"><strong>Help & About</strong><small>Support and development roadmap</small></span><span class="chevron">›</span></button>
+  </div>
+</section>
+
+<!-- ORIGINAL NAVIGATION FOR APP.JS -->
+<nav class="main-nav legacy-nav" aria-label="Existing app navigation">
+  <button type="button" class="nav-btn" data-page="library"><span class="nav-icon">📚</span><span class="nav-label">Library</span></button>
+  <button type="button" class="nav-btn" data-page="bot"><span class="nav-icon">🤖</span><span class="nav-label">Grade Bot</span></button>
+  <button type="button" class="nav-btn" data-page="arena"><span class="nav-icon">🎮</span><span class="nav-label">Arena</span></button>
+  <button type="button" class="nav-btn" data-page="wallet"><span class="nav-icon">🪙</span><span class="nav-label">Wallet</span></button>
+  <button type="button" class="nav-btn" data-page="comingSoon"><span class="nav-icon">🚀</span><span class="nav-label">More</span></button>
+  <button type="button" class="nav-btn" data-page="profile"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+</nav>
+
+<!-- EXISTING LIBRARY -->
+<section id="libraryPage" class="page" hidden>
+  <div class="section-heading"><h2>📚 GRADE X Library</h2><p>Discover and share study materials.</p></div>
+  <div class="upload-card">
+    <h3>📤 Upload a PDF</h3>
+    <form id="uploadForm">
+      <label for="pdfTitle">Document title</label>
+      <input id="pdfTitle" type="text" placeholder="e.g. Introduction to Physics" required>
+      <label for="pdfSubject">Subject</label>
+      <select id="pdfSubject" required>
+        <option value="">Choose a subject</option>
+        <option>Mathematics</option><option>Physics</option><option>Chemistry</option>
+        <option>Biology</option><option>English</option><option>Petroleum Engineering</option>
+        <option>Computer Science</option><option>Other</option>
+      </select>
+      <label for="pdfDescription">Description</label>
+      <textarea id="pdfDescription" placeholder="What will students learn from this document?"></textarea>
+      <label for="pdfFile">Choose PDF file</label>
+      <input id="pdfFile" type="file" accept="application/pdf,.pdf" required>
+      <button id="uploadBtn" type="submit" class="primary-btn">Upload to Library</button>
+    </form>
+    <p id="uploadStatus" class="status-message" role="status" aria-live="polite"></p>
+  </div>
+  <div class="section-heading"><h2>Explore Materials</h2><p>Search documents shared by students.</p></div>
+  <input id="searchPDF" type="search" placeholder="🔎 Search documents or subjects..." aria-label="Search PDFs" style="width:calc(100% - 32px);margin:8px 16px;padding:13px;border:1px solid var(--border);border-radius:11px;background:var(--panel);color:white">
+  <div id="pdfList" class="pdf-list">
+    <div class="empty-state"><span>📚</span><h3>Your library starts here</h3><p>Documents uploaded to the cloud will appear here.</p></div>
+  </div>
+  <div id="pdfReader" class="reader-card" hidden>
+    <div class="reader-heading"><h3 id="readerTitle">Document Reader</h3><button id="closeReader" type="button" class="secondary-btn">Close</button></div>
+    <div id="readerPages"></div>
+  </div>
+</section>
+
+<!-- EXISTING GRADE BOT -->
+<section id="botPage" class="page" hidden>
+  <div class="section-heading"><h2>🤖 Grade Bot</h2><p>Your personal AI study assistant.</p></div>
+  <div class="bot-card">
+    <div class="bot-avatar">🤖</div>
+    <h3>Meet Grade Bot</h3>
+    <p>Ask questions and study from your PDFs.</p>
+    <div class="pdf-study-picker">
+      <label for="botPDF">📚 Study from a PDF</label>
+      <select id="botPDF"><option value="">General questions (no PDF selected)</option></select>
+      <p id="botPDFStatus" class="small-note">Select a document to study from it.</p>
+    </div>
+    <div id="chatMessages" class="chat-messages">
+      <div class="bot-message">Hey student! 👋 I'm Grade Bot. Select a PDF from your Library, then ask me questions about it!</div>
+    </div>
+    <form id="chatForm" class="chat-form">
+      <input id="chatInput" type="text" placeholder="Ask Grade Bot..." autocomplete="off" required>
+      <button type="submit" aria-label="Send message">➤</button>
+    </form>
+  </div>
+</section>
+
+<!-- EXISTING ARENA QUIZ -->
+<section id="arenaPage" class="page" hidden>
+  <div class="section-heading"><h2>🎮 GRADE X Arena</h2><p>Challenge yourself and rise higher.</p></div>
+  <div id="arenaGameHub">
+    <div class="notice-card"><h3>🔥 Welcome to the Arena</h3><p>Play, compete and sharpen your mind.</p></div>
+    <div class="arena-games-grid">
+      <div class="notice-card arena-game-card"><div class="arena-game-icon">🧠</div><h3>Knowledge Quiz</h3><p>Test your knowledge.</p><button id="openQuizGame" type="button" class="primary-btn">Play Quiz</button></div>
+      <div class="notice-card arena-game-card"><div class="arena-game-icon">♟️</div><h3>Chess</h3><p>Strategy game.</p><button type="button" class="primary-btn" disabled>Coming Soon</button></div>
+      <div class="notice-card arena-game-card"><div class="arena-game-icon">🔤</div><h3>Scrabble</h3><p>Test your vocabulary.</p><button type="button" class="primary-btn" disabled>Coming Soon</button></div>
+      <div class="notice-card arena-game-card"><div class="arena-game-icon">⚡</div><h3>Fast Finger</h3><p>Test your speed.</p><button type="button" class="primary-btn" disabled>Coming Soon</button></div>
+    </div>
+  </div>
+  <div id="quizGamePanel" hidden>
+    <button id="backToArenaHub" type="button" class="secondary-btn arena-back-btn">← Back to Arena</button>
+    <div class="notice-card"><h3>⚔️ Knowledge Challenge</h3><p>Ready to test what you know?</p><button id="startQuiz" type="button" class="primary-btn">Start Quiz</button></div>
+    <div id="quizArea" class="notice-card" hidden>
+      <p id="quizProgress">Question 1</p>
+      <h3 id="quizQuestion"></h3>
+      <div id="quizOptions"></div>
+      <p id="quizFeedback" role="status" aria-live="polite"></p>
+      <button id="nextQuestion" type="button" class="primary-btn" hidden>Next Question</button>
+    </div>
+  </div>
+</section>
+
+<!-- NEW STORE PAGE -->
+<section id="storePage" class="page" hidden>
+  <div class="section-heading">
+    <h2>🛍️ GRADE X Store</h2>
+    <p>Your student Market for study resources and rewards.</p>
+  </div>
+
+  <div class="notice-card">
+    <h3>📚 Library Market</h3>
+    <p>Explore the existing PDF Library for study materials uploaded by students.</p>
+    <button type="button" class="primary-btn" data-open-view="library">Open Library</button>
+  </div>
+
+  <div class="notice-card">
+    <h3>🎁 Rewards Store</h3>
+    <p>Unlock eligible rewards earned through verified Arena performance.</p>
+    <p class="small-note">Reward inventory and purchases are not enabled yet.</p>
+    <button type="button" class="secondary-btn" disabled>Rewards Coming Soon</button>
+  </div>
+
+  <div class="notice-card">
+    <h3>🪙 Pay with GRADE COINS</h3>
+    <p>GRADE COINS are planned for eligible in-app purchases. Coin spending is not active yet.</p>
+    <button type="button" class="primary-btn" data-open-view="coins">Open Wallet</button>
+  </div>
+
+  <div class="feature-note">
+    The Store currently displays planned features only. It does not charge coins, grant items, or process purchases.
+  </div>
+</section>
+
+<!-- GRADE COINS WALLET -->
+<section id="walletPage" class="page" hidden>
+  <div class="section-heading"><h2>🪙 GRADE COINS</h2><p>Your planned in-app rewards dashboard.</p></div>
+  <div class="wallet-card"><p>GRADE COINS BALANCE</p><h2>0 GX</h2><span>Coin balance is not connected yet.</span></div>
+  <div class="notice-card">
+    <h3>🛍️ GRADE X Market</h3>
+    <p>The planned Market will support eligible purchases using GRADE COINS.</p>
+    <button type="button" class="primary-btn" data-open-view="store">Open Store</button>
+  </div>
+  <div class="notice-card"><h3>🎁 Arena Rewards</h3><p>Future rewards will require verified match results and secure server-side checks.</p><strong>Status: Planned</strong></div>
+</section>
+
+<!-- ROADMAP / SUPPORT -->
+<section id="comingSoonPage" class="page" hidden>
+  <div class="section-heading"><h2>🚀 GRADE X Roadmap</h2><p>What we're building next.</p></div>
+  <div class="notice-card"><h3>📰 Student Feed and Statuses</h3><p>Posts, text statuses, likes and comments.</p><strong>Status: Planned</strong></div>
+  <div class="notice-card"><h3>💬 Private Messaging</h3><p>Secure student conversations.</p><strong>Status: Planned</strong></div>
+  <div class="notice-card"><h3>📚 Library Market</h3><p>Discover study materials shared by students.</p><strong>Status: Planned</strong></div>
+  <div class="notice-card">
+    <h3>📩 Contact Us</h3>
+    <p>Support and suggestions.</p>
+    <p><a href="mailto:gradexarena@gmail.com">gradexarena@gmail.com</a></p>
+    <p><a href="https://wa.me/2347039690294" target="_blank" rel="noopener noreferrer">Contact Support on WhatsApp</a></p>
+  </div>
+</section>
+
+<!-- EXISTING PROFILE SETTINGS -->
+<section id="profilePage" class="page" hidden>
+  <div class="section-heading"><h2>👤 My Profile</h2><p>Manage your student account.</p></div>
+  <div class="notice-card profile-card">
+    <div class="profile-picture-area">
+      <img id="profileAvatarImage" class="profile-picture" src="" alt="Profile picture" hidden>
+      <div id="profileAvatarFallback" class="profile-avatar">👤</div>
+      <label for="profilePictureInput" class="change-photo-btn">📷 Change Picture</label>
+      <input type="file" id="profilePictureInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+    </div>
+    <h2 id="profileName">GRADE X Student</h2>
+    <p id="profileEmail">Student email</p>
+    <label for="profileNameInput">Display Name</label>
+    <input type="text" id="profileNameInput" placeholder="Enter your display name" maxlength="60">
+    <label for="profileUsernameInput">Username</label>
+    <input type="text" id="profileUsernameInput" placeholder="Choose a username" maxlength="30" autocomplete="username">
+    <button type="button" id="saveProfileBtn" class="primary-btn">💾 Save Changes</button>
+    <p id="profileStatus" role="status" aria-live="polite"></p>
+  </div>
+  <div class="notice-card">
+    <h3>Learning Tools</h3>
+    <div class="profile-stat"><span>📚 Library</span><span>Study PDFs</span></div>
+    <div class="profile-stat"><span>🤖 Grade Bot</span><span>Ask questions</span></div>
+    <div class="profile-stat"><span>🎮 Arena</span><span>Play quizzes</span></div>
+    <button type="button" class="secondary-btn" onclick="document.getElementById('signOutBtn').click()">Sign Out</button>
+  </div>
+</section>
+
+<!-- EXISTING PUBLIC STUDENT PROFILE -->
+<section id="publicStudentProfilePage" class="page" hidden>
+  <div class="section-heading"><h2>👤 Student Profile</h2><p>Public student profile.</p></div>
+  <div class="notice-card profile-card">
+    <button type="button" class="secondary-btn" id="closePublicStudentProfileBtn">← Back to Library</button>
+    <div class="profile-picture-area">
+      <img id="publicStudentAvatar" class="profile-picture" src="" alt="Student picture" hidden>
+      <div id="publicStudentAvatarFallback" class="profile-avatar">👤</div>
+    </div>
+    <h2 id="publicStudentName">GRADE X Student</h2>
+    <p id="publicStudentJoined">GRADE X student</p>
+    <h3>📚 Published Study Materials</h3>
+    <div id="publicStudentPDFs"><p>Loading study materials...</p></div>
+    <p id="publicStudentProfileStatus" role="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<button id="signOutBtn" type="button" class="signout-btn">Sign Out</button>
+</section>
 </main>
 
 <footer>
-    <p>GRADE X ARENA</p>
-    <p>Learn smarter. Rise higher. 🚀</p>
+  <p>GRADE X ARENA</p>
+  <p>Learn smarter. Rise higher. 🚀</p>
 </footer>
 
-<!-- KEEP YOUR EXISTING APP LOGIC -->
+<!-- FIVE MAIN NAVIGATION BUTTONS -->
+<nav class="social-bottom-nav" id="socialBottomNav" aria-label="Main navigation">
+  <button type="button" class="social-nav-button active" data-social-view="home"><span class="social-nav-icon">⌂</span><span>Home</span></button>
+  <button type="button" class="social-nav-button" data-open-view="library"><span class="social-nav-icon">📚</span><span>Library</span></button>
+  <button type="button" class="social-nav-button" data-open-view="store"><span class="social-nav-icon">🛍️</span><span>Store</span></button>
+  <button type="button" class="social-nav-button" data-open-view="coins"><span class="social-nav-icon">🪙</span><span>Wallet</span></button>
+  <button type="button" class="social-nav-button" data-social-view="profile"><span class="social-nav-icon">◉</span><span>Profile</span></button>
+</nav>
+
+<!-- KEEP YOUR EXISTING APP CONNECTION -->
 <script src="app.js"></script>
 
 <script>
-/*
- * Register the existing service worker.
- * Failure to register it must not stop the app from opening.
- */
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-        navigator.serviceWorker
-            .register("./sw.js")
-            .catch(function (error) {
-                console.error(
-                    "GRADE X service worker error:",
-                    error
-                );
-            });
-    });
-}
-
-/*
- * Keep the opening animation visible for at least 5 seconds.
- * Do not hide it immediately when the page finishes loading.
- */
 (function () {
-    var splashTimerStarted = false;
+  "use strict";
 
-    function hideSplash() {
-        if (splashTimerStarted) return;
-        splashTimerStarted = true;
+  var socialIds = {
+    home: "gxHomeView",
+    search: "gxSearchView",
+    create: "gxCreateView",
+    messages: "gxMessagesView",
+    profile: "gxProfileView"
+  };
 
-        window.setTimeout(function () {
-            var splash = document.getElementById("gx-splash");
+  var legacyIds = {
+    library: "libraryPage",
+    bot: "botPage",
+    arena: "arenaPage",
+    store: "storePage",
+    coins: "walletPage",
+    roadmap: "comingSoonPage",
+    profileSettings: "profilePage",
+    publicProfile: "publicStudentProfilePage"
+  };
 
-            if (!splash) return;
+  var legacyButtons = {
+    library: "library",
+    bot: "bot",
+    arena: "arena",
+    coins: "wallet",
+    roadmap: "comingSoon",
+    profileSettings: "profile",
+    publicProfile: "library"
+  };
 
-            splash.classList.add("gx-hide");
+  function hideAllViews() {
+    Object.keys(socialIds).forEach(function (key) {
+      var element = document.getElementById(socialIds[key]);
+      if (element) element.hidden = true;
+    });
 
-            window.setTimeout(function () {
-                if (splash.parentNode) {
-                    splash.parentNode.removeChild(splash);
-                }
-            }, 900);
-        }, 5000);
+    Object.keys(legacyIds).forEach(function (key) {
+      var element = document.getElementById(legacyIds[key]);
+      if (element) element.hidden = true;
+    });
+  }
+
+  function syncSocialProfile() {
+    var name = document.getElementById("profileName");
+    var email = document.getElementById("profileEmail");
+    var username = document.getElementById("profileUsernameInput");
+    var oldImage = document.getElementById("profileAvatarImage");
+    var socialName = document.getElementById("gxSocialProfileName");
+    var socialHandle = document.getElementById("gxSocialProfileHandle");
+
+    if (socialName && name && name.textContent.trim()) {
+      socialName.textContent = name.textContent.trim();
     }
 
-    hideSplash();
+    if (socialHandle) {
+      var handle = username ? username.value.trim() : "";
+      socialHandle.textContent = handle
+        ? "@" + handle.replace(/^@/, "")
+        : (email ? email.textContent.trim() : "Your student account");
+    }
+
+    var preview = document.getElementById("gxProfilePreviewImage");
+    var fallback = document.getElementById("gxProfilePreviewFallback");
+    var feedAvatar = document.getElementById("gxFeedAvatar");
+
+    if (oldImage && !oldImage.hidden && oldImage.src) {
+      preview.src = oldImage.src;
+      preview.hidden = false;
+      fallback.hidden = true;
+
+      if (feedAvatar) {
+        feedAvatar.replaceChildren();
+        var image = document.createElement("img");
+        image.src = oldImage.src;
+        image.alt = "";
+        feedAvatar.appendChild(image);
+      }
+    } else {
+      preview.hidden = true;
+      fallback.hidden = false;
+      if (feedAvatar) feedAvatar.textContent = "👤";
+    }
+  }
+
+  function setActiveTab(view) {
+    document.querySelectorAll(".social-nav-button").forEach(function (button) {
+      var active = button.dataset.socialView === view;
+      button.classList.toggle("active", active);
+
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
+  }
+
+  function openSocial(view) {
+    hideAllViews();
+    var target = document.getElementById(socialIds[view]);
+    if (target) target.hidden = false;
+
+    setActiveTab(view);
+    if (view === "profile") syncSocialProfile();
+    window.scrollTo(0, 0);
+  }
+
+  function openLegacy(view) {
+    hideAllViews();
+
+    /*
+     * Store is a new page and has no legacy app.js navigation button.
+     * Existing Library, Bot, Arena and Wallet navigation still uses
+     * the original buttons so their existing app.js handlers can run.
+     */
+    var navPage = legacyButtons[view];
+    if (navPage) {
+      var oldButton = document.querySelector(
+        '.legacy-nav .nav-btn[data-page="' + navPage + '"]'
+      );
+      if (oldButton) oldButton.click();
+    }
+
+    var targetId = legacyIds[view];
+    var target = targetId ? document.getElementById(targetId) : null;
+    if (target) target.hidden = false;
+
+    setActiveTab("");
+
+    if (view === "profileSettings") syncSocialProfile();
+    window.scrollTo(0, 0);
+  }
+
+  function showView(view) {
+    if (socialIds[view]) openSocial(view);
+    else if (legacyIds[view]) openLegacy(view);
+  }
+
+  document.querySelectorAll("[data-social-view]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      showView(button.dataset.socialView);
+    });
+  });
+
+  document.querySelectorAll("[data-open-view]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      showView(button.dataset.openView);
+    });
+  });
+
+  var settingsButton = document.getElementById("gxSettingsButton");
+  if (settingsButton) {
+    settingsButton.addEventListener("click", function () {
+      showView("profileSettings");
+    });
+  }
+
+  var notificationsButton = document.getElementById("gxNotificationsButton");
+  if (notificationsButton) {
+    notificationsButton.addEventListener("click", function () {
+      window.alert("GRADE X notifications are not available yet.");
+    });
+  }
+
+  var exploreSearch = document.getElementById("gxExploreSearch");
+  var librarySearch = document.getElementById("searchPDF");
+
+  if (exploreSearch && librarySearch) {
+    exploreSearch.addEventListener("input", function () {
+      librarySearch.value = exploreSearch.value;
+      librarySearch.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    exploreSearch.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        showView("library");
+        librarySearch.focus();
+      }
+    });
+  }
+
+  ["profileNameInput", "profileUsernameInput"].forEach(function (id) {
+    var input = document.getElementById(id);
+    if (input) input.addEventListener("input", syncSocialProfile);
+  });
+
+  var profileImage = document.getElementById("profileAvatarImage");
+  if (profileImage) profileImage.addEventListener("load", syncSocialProfile);
+
+  /*
+   * Show Home after the existing app.js authentication logic
+   * reveals the authenticated app section.
+   */
+  function showHomeWhenReady() {
+    var auth = document.getElementById("authSection");
+    var app = document.getElementById("appSection");
+
+    if (auth && app && auth.hidden && !app.hidden) {
+      openSocial("home");
+    }
+  }
+
+  var appSection = document.getElementById("appSection");
+  if (appSection && window.MutationObserver) {
+    var observer = new MutationObserver(showHomeWhenReady);
+    observer.observe(appSection, {
+      attributes: true,
+      attributeFilter: ["hidden"]
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", showHomeWhenReady);
+
+  var splash = document.getElementById("gx-splash");
+  window.setTimeout(function () {
+    if (!splash) return;
+    splash.classList.add("gx-hide");
+    window.setTimeout(function () {
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+    }, 800);
+  }, 1800);
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js").catch(function (error) {
+        console.warn("Service worker registration failed:", error);
+      });
+    });
+  }
 })();
 </script>
 
