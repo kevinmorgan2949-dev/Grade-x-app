@@ -526,13 +526,17 @@ function renderDocuments() {    // Keep Grade Bot's PDF selector synced with the
                 <p>📘 ${escapeHTML(doc.subject)}</p>
 
                 <p>${escapeHTML(doc.description || "Study material")}</p>
+
 <div class="pdf-author">
     ${doc.author_avatar
         ? `<img
             src="${escapeHTML(doc.author_avatar)}"
             alt=""
-            class="pdf-author-avatar">`
-        : `<span class="pdf-author-avatar-fallback">👤</span>`
+            class="pdf-author-avatar"
+            style="width:32px;height:32px;min-width:32px;max-width:32px;min-height:32px;max-height:32px;object-fit:cover;border-radius:50%;flex-shrink:0;">`
+        : `<span
+            class="pdf-author-avatar-fallback"
+            style="width:32px;height:32px;min-width:32px;max-width:32px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:16px;">👤</span>`
     }
 
     <button
@@ -543,6 +547,7 @@ function renderDocuments() {    // Keep Grade Bot's PDF selector synced with the
         ${escapeHTML(doc.author_name || "GRADE X Student")}
     </button>
 </div>
+
 
                 <p>${formatFileSize(doc.file_size)}</p>
 
