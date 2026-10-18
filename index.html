@@ -1,678 +1,532 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#7c3aed">
-<meta name="mobile-web-app-capable" content="yes">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#100d24">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <title>GRADE X — Small Arena</title>
-
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+
+    <title>GRADE X Arena</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 
 <body>
-    
-<!-- GRADE X ARENA OPENING SCREEN -->
+
+<!-- OPENING SCREEN -->
 <div id="gx-splash" aria-label="Loading GRADE X Arena">
     <div class="gx-logo">
         <div class="gx-logo-x">GRADE X</div>
         <div class="gx-logo-arena">ARENA</div>
     </div>
-
     <div class="gx-line"></div>
-
     <p class="gx-tagline">YOUR KNOWLEDGE. YOUR POWER.</p>
-
     <div class="gx-loading" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
     </div>
 </div>
-<!-- END OPENING SCREEN -->
 
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-icon">X</div>
+        <div>
+            <h1>GRADE <span>X</span></h1>
+            <p>YOUR KNOWLEDGE. YOUR POWER.</p>
+        </div>
+    </div>
+</header>
 
-    <header class="topbar">
-        <div class="brand">
-            <div class="brand-icon">X</div>
+<main>
+
+<!-- SIGN IN / SIGN UP -->
+<section id="authSection" class="auth-section">
+    <div class="hero">
+        <span class="badge">WELCOME TO THE ARENA</span>
+        <h2>Your Classroom.<br><span>Your Rules.</span></h2>
+        <p>Read, learn, compete and grow with GRADE X.</p>
+    </div>
+
+    <div class="auth-card">
+        <h2 id="authTitle">Join GRADE X</h2>
+        <p id="authMessage">Create your student account to get started.</p>
+
+        <form id="authForm">
+            <label for="email">Email address</label>
+            <input id="email" type="email" placeholder="you@example.com" required>
+
+            <label for="password">Password</label>
+            <input id="password" type="password"
+                   placeholder="At least 6 characters"
+                   minlength="6" required>
+
+            <button id="authSubmit" type="submit" class="primary-btn">
+                Create Account
+            </button>
+        </form>
+
+        <p id="authStatus" class="status-message" role="status"></p>
+
+        <button id="authToggle" type="button" class="text-btn">
+            Already have an account? Sign in
+        </button>
+    </div>
+</section>
+
+<!-- MAIN APP -->
+<section id="appSection" hidden>
+
+    <section class="welcome-card">
+        <div>
+            <span class="badge">YOUR LEARNING SPACE</span>
+            <h2>Welcome, <span id="studentEmail">Student</span>!</h2>
+            <p>Knowledge is your greatest investment.</p>
+        </div>
+    </section>
+
+    <div class="notice-card community-card">
+        <h3>💜 GRADE X Community</h3>
+        <p>
+            Stay updated with GX News, announcements, student discussions,
+            trends and community updates.
+        </p>
+        <a href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
+           target="_blank" rel="noopener noreferrer"
+           class="primary-btn community-link">
+            Visit GRADE X Community ↗
+        </a>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav class="main-nav">
+        <button type="button" class="nav-btn active" data-page="library">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">Library</span>
+        </button>
+        <button type="button" class="nav-btn" data-page="bot">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">Grade Bot</span>
+        </button>
+        <button type="button" class="nav-btn" data-page="arena">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">Arena</span>
+        </button>
+        <button type="button" class="nav-btn" data-page="wallet">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">Wallet</span>
+        </button>
+        <button type="button" class="nav-btn" data-page="comingSoon">
+            <span class="nav-icon">🚀</span>
+            <span class="nav-label">More</span>
+        </button>
+        <button type="button" class="nav-btn" data-page="profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profile</span>
+        </button>
+    </nav>
+
+    <!-- LIBRARY -->
+    <section id="libraryPage" class="page">
+        <div class="section-heading">
             <div>
-                <h1>GRADE <span>X</span></h1>
-                <p>YOUR KNOWLEDGE. YOUR POWER.</p>
+                <h2>GRADE X Library</h2>
+                <p>Discover and share learning materials.</p>
             </div>
         </div>
-    </header>
 
-    <main>
+        <div class="upload-card">
+            <h3>📤 Upload a PDF</h3>
+            <p>Share useful notes, textbooks and study materials.</p>
 
-        <section id="authSection" class="auth-section">
-            <div class="hero">
-                <span class="badge">WELCOME TO THE ARENA</span>
-                <h2>Your Classroom.<br><span>Your Rules.</span></h2>
-                <p>Read, learn, compete and grow with GRADE X.</p>
+            <form id="uploadForm">
+                <label for="pdfTitle">Document title</label>
+                <input id="pdfTitle" type="text"
+                       placeholder="e.g. Introduction to Physics" required>
+
+                <label for="pdfSubject">Subject</label>
+                <select id="pdfSubject" required>
+                    <option value="">Choose a subject</option>
+                    <option>Mathematics</option>
+                    <option>Physics</option>
+                    <option>Chemistry</option>
+                    <option>Biology</option>
+                    <option>English</option>
+                    <option>Petroleum Engineering</option>
+                    <option>Computer Science</option>
+                    <option>Other</option>
+                </select>
+
+                <label for="pdfDescription">Description</label>
+                <textarea id="pdfDescription"
+                          placeholder="What will students learn from this document?"></textarea>
+
+                <label for="pdfFile">Choose PDF file</label>
+                <input id="pdfFile" type="file"
+                       accept="application/pdf,.pdf" required>
+
+                <button id="uploadBtn" type="submit" class="primary-btn">
+                    Upload to Library
+                </button>
+            </form>
+
+            <p id="uploadStatus" class="status-message" role="status"></p>
+        </div>
+
+        <div class="section-heading">
+            <div>
+                <h2>Explore Materials</h2>
+                <p>Study resources shared by students.</p>
             </div>
+        </div>
 
-            <div class="auth-card">
-                <h2 id="authTitle">Join GRADE X</h2>
-                <p id="authMessage">Create your student account to get started.</p>
+        <input id="searchPDF" type="search"
+               placeholder="🔎 Search documents or subjects...">
 
-                <form id="authForm">
-                    <label for="email">Email address</label>
-                    <input id="email" type="email"
-                           placeholder="you@example.com" required>
+        <div id="pdfList" class="pdf-list">
+            <div class="empty-state">
+                <span>📚</span>
+                <h3>Your library starts here</h3>
+                <p>Documents uploaded to the cloud will appear here.</p>
+            </div>
+        </div>
 
-                    <label for="password">Password</label>
-                    <input id="password" type="password"
-                           placeholder="At least 6 characters"
-                           minlength="6" required>
-
-                    <button id="authSubmit" type="submit" class="primary-btn">
-                        Create Account
-                    </button>
-                </form>
-
-                <p id="authStatus" class="status-message"></p>
-
-                <button id="authToggle" class="text-btn">
-                    Already have an account? Sign in
+        <div id="pdfReader" class="reader-card" hidden>
+            <div class="reader-heading">
+                <h3 id="readerTitle">Document Reader</h3>
+                <button id="closeReader" type="button" class="secondary-btn">
+                    Close
                 </button>
             </div>
-        </section>
+            <div id="readerPages"></div>
+        </div>
+    </section>
 
-        <section id="appSection" hidden>
-
-            <section class="welcome-card">
-                <div>
-                    <span class="badge">YOUR LEARNING SPACE</span>
-                    <h2>Welcome, <span id="studentEmail">Student</span>!</h2>
-                    <p>Knowledge is your greatest investment.</p>
-                </div>
-            </section>
-            
-<div class="notice-card community-card">
-    <h3>💜 GRADE X Community</h3>
-    <p>
-        Stay updated with GX News, announcements, student discussions,
-        trends and community updates.
-    </p>
-    <a
-href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="primary-btn community-link"
-    >
-        Visit GRADE X Community ↗
-    </a>
-</div>
-
-
-            <nav class="main-nav">
-    <button class="nav-btn active" data-page="library">
-        <span class="nav-icon">📚</span>
-        <span class="nav-label">Library</span>
-    </button>
-    
-    <button class="nav-btn" data-page="bot">
-        <span class="nav-icon">🤖</span>
-        <span class="nav-label">Grade Bot</span>
-    </button>
-    
-    <button class="nav-btn" data-page="arena">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-label">Arena</span>
-    </button>
-    
-    <button class="nav-btn" data-page="wallet">
-        <span class="nav-icon">💰</span>
-        <span class="nav-label">Wallet</span>
-    </button>
-    
-    <button class="nav-btn" data-page="comingSoon">
-        <span class="nav-icon">🚀</span>
-        <span class="nav-label">More</span>
-    </button>
-    <button class="nav-btn" data-page="profile">
-    <span class="nav-icon">👤</span>
-    <span class="nav-label">Profile</span>
-</button>
-</nav>
-            <!-- LIBRARY -->
-            <section id="libraryPage" class="page">
-                <div class="section-heading">
-                    <div>
-                        <h2>Grade X Library</h2>
-                        <p>Discover and share learning materials.</p>
-                    </div>
-                </div>
-
-                <div class="upload-card">
-                    <h3>📤 Upload a PDF</h3>
-                    <p>Share useful notes, textbooks and study materials.</p>
-
-                    <form id="uploadForm">
-                        <label for="pdfTitle">Document title</label>
-                        <input id="pdfTitle" type="text"
-                               placeholder="e.g. Introduction to Physics"
-                               required>
-
-                        <label for="pdfSubject">Subject</label>
-                        <select id="pdfSubject" required>
-                            <option value="">Choose a subject</option>
-                            <option>Mathematics</option>
-                            <option>Physics</option>
-                            <option>Chemistry</option>
-                            <option>Biology</option>
-                            <option>English</option>
-                            <option>Petroleum Engineering</option>
-                            <option>Computer Science</option>
-                            <option>Other</option>
-                        </select>
-
-                        <label for="pdfDescription">Description</label>
-                        <textarea id="pdfDescription"
-                                  placeholder="What will students learn from this document?"></textarea>
-
-                        <label for="pdfFile">Choose PDF file</label>
-                        <input id="pdfFile" type="file"
-                               accept="application/pdf,.pdf" required>
-
-                        <button id="uploadBtn" type="submit" class="primary-btn">
-                            Upload to Library
-                        </button>
-                    </form>
-
-                    <p id="uploadStatus" class="status-message"></p>
-                </div>
-
-                <div class="section-heading">
-                    <div>
-                        <h2>Explore Materials</h2>
-                        <p>Study resources shared by students.</p>
-                    </div>
-                </div>
-
-                <input id="searchPDF" type="search"
-                       placeholder="🔎 Search documents or subjects...">
-
-                <div id="pdfList" class="pdf-list">
-                    <div class="empty-state">
-                        <span>📚</span>
-                        <h3>Your library starts here</h3>
-                        <p>Documents uploaded to the cloud will appear here.</p>
-                    </div>
-                </div>
-
-                <div id="pdfReader" class="reader-card" hidden>
-                    <div class="reader-heading">
-                        <h3 id="readerTitle">Document Reader</h3>
-                        <button id="closeReader" class="secondary-btn">
-                            Close
-                        </button>
-                    </div>
-
-                    <div id="readerPages"></div>
-                </div>
-            </section>
-
-<!-- GRADE BOT -->
-        <section id="botPage" class="page" hidden>
-            <div class="section-heading">
-                <div>
-                    <h2>GRADE BOT</h2>
-                    <p>Your personal AI study assistant.</p>
-                </div>
+    <!-- GRADE BOT -->
+    <section id="botPage" class="page" hidden>
+        <div class="section-heading">
+            <div>
+                <h2>GRADE BOT</h2>
+                <p>Your personal AI study assistant.</p>
             </div>
+        </div>
 
-            <div class="bot-card">
-                <div class="bot-avatar">🤖</div>
-                <h3>Meet Grade Bot</h3>
-                <p>Ask questions, explore concepts and study from your PDFs.</p>
+        <div class="bot-card">
+            <div class="bot-avatar">🤖</div>
+            <h3>Meet Grade Bot</h3>
+            <p>Ask questions, explore concepts and study from your PDFs.</p>
 
-                <div class="pdf-study-picker">
-                    <label for="botPDF">📚 Study from a PDF in your Library</label>
-                    <select id="botPDF">
-                        <option value="">General questions (no PDF selected)</option>
-                    </select>
-                    <p id="botPDFStatus" class="small-note">
-                        Select a document to study from it.
-                    </p>
-                </div>
-
-                <div id="chatMessages" class="chat-messages">
-                    <div class="bot-message">
-                        Hey student! 👋 I'm Grade Bot. Select a PDF from your Library, then ask me questions about it!
-                    </div>
-                </div>
-
-                <form id="chatForm" class="chat-form">
-                    <input id="chatInput" type="text"
-                           placeholder="Ask about your PDF..."
-                           required>
-                    <button type="submit">➤</button>
-                </form>
-
-                <p class="small-note">
-                    Grade Bot can only answer from a selected PDF once its contents are connected to the AI request.
+            <div class="pdf-study-picker">
+                <label for="botPDF">📚 Study from a PDF in your Library</label>
+                <select id="botPDF">
+                    <option value="">General questions (no PDF selected)</option>
+                </select>
+                <p id="botPDFStatus" class="small-note">
+                    Select a document to study from it.
                 </p>
             </div>
-        </section>
-            
-<!-- ARENA: UNDER DEVELOPMENT -->
-<section id="arenaPage" class="page" hidden>
 
-    <div style="
-        min-height: 65vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 30px 18px;
-        border-radius: 22px;
-        background: radial-gradient(ellipse at top, #241044 0%, #100d24 48%, #080711 100%);
-        border: 1px solid rgba(139, 92, 246, 0.45);
-        box-shadow: 0 0 30px rgba(124, 58, 237, 0.12);
-    ">
-
-        <div style="
-            width: 100px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            border: 2px solid #8b5cf6;
-            background: rgba(124, 58, 237, 0.12);
-            box-shadow: 0 0 28px rgba(139, 92, 246, 0.25);
-            font-size: 48px;
-            margin-bottom: 25px;
-        ">🏆</div>
-
-        <p style="
-            color: #a78bfa;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 4px;
-            margin-bottom: 12px;
-        ">GRADE X</p>
-
-        <h2 style="
-            color: #ffffff;
-            font-size: clamp(26px, 7vw, 36px);
-            line-height: 1.25;
-            margin: 0 0 16px;
-        ">ARENA</h2>
-
-        <div style="
-            padding: 9px 17px;
-            border: 1px solid #8b5cf6;
-            border-radius: 30px;
-            color: #c4b5fd;
-            background: rgba(124, 58, 237, 0.15);
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            margin-bottom: 25px;
-        ">🚧 UNDER DEVELOPMENT</div>
-
-        <h3 style="
-            color: #ffffff;
-            font-size: 23px;
-            margin: 0 0 12px;
-        ">COMING SOON</h3>
-
-        <p style="
-            color: #c4bfd6;
-            font-size: 14px;
-            line-height: 1.8;
-            max-width: 300px;
-            margin: 0 auto 25px;
-        ">
-            Something exciting is being built.
-            Get ready for a new way to test your knowledge,
-            challenge yourself and rise higher.
-        </p>
-
-        <div style="
-            width: 75px;
-            height: 3px;
-            border-radius: 5px;
-            background: linear-gradient(90deg, #7c3aed, #38bdf8);
-            margin-bottom: 20px;
-        "></div>
-
-        <p style="
-            color: #a78bfa;
-            font-size: 12px;
-            letter-spacing: 1px;
-            margin: 0;
-        ">YOUR KNOWLEDGE. YOUR POWER.</p>
-
-    </div>
-
-    <!-- Hidden compatibility elements for existing app.js.
-         These prevent errors if the current JavaScript still
-         references the old quiz element IDs. -->
-    <div hidden aria-hidden="true">
-        <button id="startQuiz" type="button" tabindex="-1"></button>
-        <div id="quizArea">
-            <div id="quizProgress"></div>
-            <h3 id="quizQuestion"></h3>
-            <div id="quizOptions"></div>
-            <p id="quizFeedback"></p>
-            <button id="nextQuestion" type="button"></button>
-        </div>
-    </div>
-
-</section>
-<!-- END ARENA -->
-
-            <!-- WALLET -->
-            <section id="walletPage" class="page" hidden>
-                <div class="section-heading">
-                    <div>
-                        <h2>Grade X Wallet</h2>
-                        <p>Your account and rewards dashboard.</p>
-                    </div>
+            <div id="chatMessages" class="chat-messages">
+                <div class="bot-message">
+                    Hey student! 👋 I'm Grade Bot. Select a PDF from your
+                    Library, then ask me questions about it!
                 </div>
+            </div>
 
-                <div class="wallet-card">
-                    <p>DEMO BALANCE</p>
-                    <h2>₦0.00</h2>
-                    <span>Real-money transactions are not enabled.</span>
-                </div>
+            <form id="chatForm" class="chat-form">
+                <input id="chatInput" type="text"
+                       placeholder="Ask about your PDF..." required>
+                <button type="submit" aria-label="Send message">➤</button>
+            </form>
 
-                <div class="wallet-actions">
-                    <button class="secondary-btn" disabled>
-                        + Deposit
-                    </button>
-                    <button class="secondary-btn" disabled>
-                        Withdraw
-                    </button>
-                </div>
-
-                <div class="notice-card">
-                    <h3>💡 Coming Soon</h3>
-                    <p>
-                        Secure deposits, eligible reading rewards and
-                        withdrawals will require verified payment and
-                        anti-fraud systems.
-                    </p>
-                </div>
-            </section>
-            
-<!-- COMING SOON -->
-<section id="comingSoonPage" class="page" hidden>
-    <div class="section-heading">
-        <div>
-            <h2>🚀 The Future of GRADE X</h2>
-            <p>Here is what we are building for you.</p>
+            <p class="small-note">
+                Select a PDF to ask Grade Bot questions about its contents.
+            </p>
         </div>
-    </div>
+    </section>
 
-    <div class="notice-card">
-        <h3>📅 Development Roadmap</h3>
-        <p>Release dates are estimates and may change as we develop and test each feature.</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>📩 Contact Us</h3>
-        <p>Estimated release: November 2026</p>
-        <p>Get help, report issues and send suggestions to the GRADE X team.</p>
-        <p><a href="mailto:gradexarena@gmail.com">✉️ gradexarena@gmail.com</a></p>
-        <p><a href="https://wa.me/2347039690294" target="_blank" rel="noopener">💬 Contact Support on WhatsApp</a></p>
-        <p><strong>Status:</strong> Planned</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>💰 GX Wallet Upgrades</h3>
-        <p>Estimated release: December 2026</p>
-        <p>Planned balance dashboard, transaction history, eligible rewards and withdrawal features.</p>
-        <p><strong>Status:</strong> In development planning</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>🏆 Verified Leaderboard</h3>
-        <p>Estimated release: December 2026</p>
-        <p>Compare verified quiz scores, celebrate top students and track competitive rankings.</p>
-        <p><strong>Status:</strong> Planned</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>👤 Student Profile & Learning Progress</h3>
-        <p>Estimated release: December 2026</p>
-        <p>View your profile, quiz history, scores and learning progress in one place.</p>
-        <p><strong>Status:</strong> Planned</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>📖 PDF Page-Reading Earnings</h3>
-        <p>Estimated release: December 2026</p>
-        <p>Eligible uploaders may earn rewards from verified document reading activity, with anti-fraud checks to prevent abuse.</p>
-        <p><strong>Status:</strong> Planned</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>⚔️ Stake Arena</h3>
-        <p>Estimated release: January 2027</p>
-        <p>Competitive challenges, rankings and rewards, subject to clear rules, safeguards and any applicable legal requirements.</p>
-        <p><strong>Status:</strong> Planned</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>💜 Built for Students</h3>
-        <p>GRADE X is growing step by step. Our priority is to make learning useful, accessible and fair.</p>
-    </div>
-</section>
-
-<!-- PROFILE PAGE -->
-<section id="profilePage" class="page" hidden>
-
-    <div class="section-heading">
-        <div>
-            <h2>👤 My Profile</h2>
-            <p>Manage your GRADE X student account.</p>
-        </div>
-    </div>
-
-    <!-- STUDENT PROFILE CARD -->
-    
-<div class="notice-card profile-card">
-
-    <div class="profile-picture-area">
-        <img
-            id="profileAvatarImage"
-            class="profile-picture"
-            src=""
-            alt="Student profile picture"
-            hidden
-        >
-
-        <div id="profileAvatarFallback" class="profile-avatar">
-            👤
-        </div>
-
-        <label for="profilePictureInput" class="change-photo-btn">
-            📷 Change Picture
-        </label>
-
-        <input
-            type="file"
-            id="profilePictureInput"
-            accept="image/*"
-            hidden
-        >
-    </div>
-
-    <h2 id="profileName">GRADE X Student</h2>
-    <p id="profileEmail">Student email</p>
-
-    <div class="profile-badge">🎓 GRADE X Student</div>
-        <label for="profileUsernameInput">Username</label>
-
-        <input
-            type="text"
-            id="profileUsernameInput"
-            placeholder="e.g. kelvin_morgan"
-            minlength="3"
-            maxlength="20"
-            autocomplete="username"
-            autocapitalize="none"
-            spellcheck="false"
-        >
-
-        <p class="small-note">
-            Choose a unique username using letters, numbers, and underscores.
-        </p>
-        <button type="button" id="saveProfileBtn">
-            💾 Save Changes
-        </button>
-
-        <p id="profileStatus" role="status"></p>
-    </div>
-
-</div>
-
-
-    <!-- LEARNING PROGRESS -->
-    <div class="notice-card">
-        <h3>📚 Learning Progress</h3>
-        <p>Keep learning, reading PDFs, and practising quizzes to improve your knowledge.</p>
-
-        <div class="profile-stat">
-            <span>📖 PDF Library</span>
-            <span>Study and learn</span>
-        </div>
-
-        <div class="profile-stat">
-            <span>🤖 Grade Bot</span>
-            <span>Ask questions</span>
-        </div>
-
-        <div class="profile-stat">
-            <span>🏆 Arena</span>
-            <span>Practise quizzes</span>
-        </div>
-    </div>
-
-    <!-- ACCOUNT SETTINGS -->
-    <div class="notice-card">
-        <h3>⚙️ Account Settings</h3>
-        <p>Your GRADE X account and sign-out options.</p>
-
-        <button
-            type="button"
-            class="secondary-btn"
-            onclick="document.getElementById('signOutBtn').click()">
-            🚪 Sign Out
-        </button>
-    </div>
-
-</section>
-
-<!-- PUBLIC STUDENT PROFILE -->
-<section id="publicStudentProfilePage" class="page" hidden>
-
-    <div class="section-heading">
-        <div>
-            <h2>👤 Student Profile</h2>
-            <p>View this student's public profile.</p>
-        </div>
-    </div>
-
-    <div class="notice-card profile-card">
-
-        <button
-            type="button"
-            class="secondary-btn"
-            id="closePublicStudentProfileBtn">
-            ← Back to Library
-        </button>
-
-        <div class="profile-picture-area">
-            <img
-                id="publicStudentAvatar"
-                class="profile-picture"
-                src=""
-                alt="Student profile picture"
-                hidden
-            >
-
-            <div
-                id="publicStudentAvatarFallback"
-                class="profile-avatar">
-                👤
+    <!-- ARENA QUIZ -->
+    <section id="arenaPage" class="page" hidden>
+        <div class="section-heading">
+            <div>
+                <h2>🏆 GRADE X Arena</h2>
+                <p>Test your knowledge and improve your skills.</p>
             </div>
         </div>
-
-        <h2 id="publicStudentName">GRADE X Student</h2>
-        <div class="profile-badge">🎓 GRADE X Student</div>
-
-        <p id="publicStudentJoined">GRADE X student</p>
 
         <div class="notice-card">
-            <h3>📚 Published Study Materials</h3>
-            <p>PDFs shared by this student.</p>
-            <div id="publicStudentPDFs">
-                <p>Loading study materials...</p>
+            <h3>⚔️ Knowledge Challenge</h3>
+            <p>Ready to test what you know? Start a quiz and challenge yourself.</p>
+            <button id="startQuiz" type="button" class="primary-btn">
+                Start Quiz
+            </button>
+        </div>
+
+        <div id="quizArea" class="notice-card" hidden>
+            <p id="quizProgress">Question 1</p>
+            <h3 id="quizQuestion"></h3>
+            <div id="quizOptions"></div>
+            <p id="quizFeedback" role="status"></p>
+            <button id="nextQuestion" type="button" class="primary-btn" hidden>
+                Next Question
+            </button>
+        </div>
+    </section>
+
+    <!-- WALLET -->
+    <section id="walletPage" class="page" hidden>
+        <div class="section-heading">
+            <div>
+                <h2>GRADE X Wallet</h2>
+                <p>Your account and rewards dashboard.</p>
             </div>
         </div>
 
-        <p id="publicStudentProfileStatus" role="status"></p>
+        <div class="wallet-card">
+            <p>DEMO BALANCE</p>
+            <h2>₦0.00</h2>
+            <span>Real-money transactions are not enabled.</span>
+        </div>
 
-    </div>
+        <div class="wallet-actions">
+            <button type="button" class="secondary-btn" disabled>+ Deposit</button>
+            <button type="button" class="secondary-btn" disabled>Withdraw</button>
+        </div>
 
-</section>
+        <div class="notice-card">
+            <h3>💡 Coming Soon</h3>
+            <p>
+                Secure deposits, eligible reading rewards and withdrawals
+                require verified payment and anti-fraud systems.
+            </p>
+        </div>
+    </section>
 
-<!-- END PROFILE PAGE -->
+    <!-- MORE / ROADMAP -->
+    <section id="comingSoonPage" class="page" hidden>
+        <div class="section-heading">
+            <div>
+                <h2>🚀 The Future of GRADE X</h2>
+                <p>Here is what we are building for you.</p>
+            </div>
+        </div>
 
-            <button id="signOutBtn" class="signout-btn">
-                Sign Out
+        <div class="notice-card">
+            <h3>📅 Development Roadmap</h3>
+            <p>Release dates are estimates and may change during development.</p>
+        </div>
+
+        <div class="notice-card">
+            <h3>📩 Contact Us</h3>
+            <p>Get help, report issues and send suggestions to the GRADE X team.</p>
+            <p><a href="mailto:gradexarena@gmail.com">✉️ gradexarena@gmail.com</a></p>
+            <p>
+                <a href="https://wa.me/2347039690294"
+                   target="_blank" rel="noopener noreferrer">
+                    💬 Contact Support on WhatsApp
+                </a>
+            </p>
+        </div>
+
+        <div class="notice-card">
+            <h3>💰 GX Wallet Upgrades</h3>
+            <p>Planned balance dashboard, transaction history and eligible rewards.</p>
+            <p><strong>Status:</strong> Planned</p>
+        </div>
+
+        <div class="notice-card">
+            <h3>🏆 Verified Leaderboard</h3>
+            <p>Compare verified quiz scores and track competitive rankings.</p>
+            <p><strong>Status:</strong> Planned</p>
+        </div>
+
+        <div class="notice-card">
+            <h3>👤 Student Profile & Learning Progress</h3>
+            <p>View your profile, quiz history, scores and learning progress.</p>
+            <p><strong>Status:</strong> In development</p>
+        </div>
+
+        <div class="notice-card">
+            <h3>📖 PDF Page-Reading Rewards</h3>
+            <p>Potential rewards for eligible reading activity, subject to anti-fraud checks.</p>
+            <p><strong>Status:</strong> Planned</p>
+        </div>
+
+        <div class="notice-card">
+            <h3>⚔️ Stake Arena</h3>
+            <p>Competitive challenges and rankings, subject to safeguards and applicable laws.</p>
+            <p><strong>Status:</strong> Planned</p>
+        </div>
+
+        <div class="notice-card">
+            <h3>💜 Built for Students</h3>
+            <p>Our priority is to make learning useful, accessible and fair.</p>
+        </div>
+    </section>
+
+    <!-- MY PROFILE -->
+    <section id="profilePage" class="page" hidden>
+        <div class="section-heading">
+            <div>
+                <h2>👤 My Profile</h2>
+                <p>Manage your GRADE X student account.</p>
+            </div>
+        </div>
+
+        <div class="notice-card profile-card">
+            <div class="profile-picture-area">
+                <img id="profileAvatarImage"
+                     class="profile-picture"
+                     src=""
+                     alt="Student profile picture"
+                     hidden>
+
+                <div id="profileAvatarFallback" class="profile-avatar">👤</div>
+
+                <label for="profilePictureInput" class="change-photo-btn">
+                    📷 Change Picture
+                </label>
+
+                <input type="file" id="profilePictureInput"
+                       accept="image/png,image/jpeg,image/webp,image/gif"
+                       hidden>
+            </div>
+
+            <h2 id="profileName">GRADE X Student</h2>
+            <p id="profileEmail">Student email</p>
+
+            <div class="profile-badge">🎓 GRADE X Student</div>
+
+            <label for="profileNameInput">Display Name</label>
+            <input type="text" id="profileNameInput"
+                   placeholder="Enter your display name" maxlength="60">
+
+            <label for="profileUsernameInput">Username</label>
+            <input type="text" id="profileUsernameInput"
+                   placeholder="Choose a username" maxlength="30"
+                   autocomplete="username">
+
+            <button type="button" id="saveProfileBtn" class="primary-btn">
+                💾 Save Changes
             </button>
 
-        </section>
+            <p id="profileStatus" role="status"></p>
+        </div>
 
-    </main>
+        <div class="notice-card">
+            <h3>📚 Learning Progress</h3>
+            <p>Keep learning, reading PDFs and practising quizzes.</p>
+            <div class="profile-stat">
+                <span>📖 PDF Library</span>
+                <span>Study and learn</span>
+            </div>
+            <div class="profile-stat">
+                <span>🤖 Grade Bot</span>
+                <span>Ask questions</span>
+            </div>
+            <div class="profile-stat">
+                <span>🏆 Arena</span>
+                <span>Practise quizzes</span>
+            </div>
+        </div>
 
-    <footer>
-        <p>GRADE X — SMALL ARENA</p>
-        <p>Learn smarter. Rise higher. 🚀</p>
-    </footer>
+        <div class="notice-card">
+            <h3>⚙️ Account Settings</h3>
+            <p>Your GRADE X account and sign-out options.</p>
+            <button type="button" class="secondary-btn"
+                    onclick="document.getElementById('signOutBtn').click()">
+                🚪 Sign Out
+            </button>
+        </div>
+    </section>
 
-    <script src="app.js"></script>
-    
+    <!-- PUBLIC STUDENT PROFILE -->
+    <section id="publicStudentProfilePage" class="page" hidden>
+        <div class="section-heading">
+            <div>
+                <h2>👤 Student Profile</h2>
+                <p>View this student's public profile.</p>
+            </div>
+        </div>
+
+        <div class="notice-card profile-card">
+            <button type="button" class="secondary-btn"
+                    id="closePublicStudentProfileBtn">
+                ← Back to Library
+            </button>
+
+            <div class="profile-picture-area">
+                <img id="publicStudentAvatar"
+                     class="profile-picture"
+                     src=""
+                     alt="Student profile picture"
+                     hidden>
+
+                <div id="publicStudentAvatarFallback" class="profile-avatar">
+                    👤
+                </div>
+            </div>
+
+            <h2 id="publicStudentName">GRADE X Student</h2>
+            <div class="profile-badge">🎓 GRADE X Student</div>
+            <p id="publicStudentJoined">GRADE X student</p>
+
+            <div class="notice-card">
+                <h3>📚 Published Study Materials</h3>
+                <p>PDFs shared by this student.</p>
+                <div id="publicStudentPDFs">
+                    <p>Loading study materials...</p>
+                </div>
+            </div>
+
+            <p id="publicStudentProfileStatus" role="status"></p>
+        </div>
+    </section>
+
+    <button id="signOutBtn" type="button" class="signout-btn">
+        Sign Out
+    </button>
+
+</section>
+</main>
+
+<footer>
+    <p>GRADE X ARENA</p>
+    <p>Learn smarter. Rise higher. 🚀</p>
+</footer>
+
+<script src="app.js"></script>
+
 <script>
+/* Register the existing service worker without blocking app startup. */
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js")
-            .catch((error) => {
-                console.error("Service worker error:", error);
-            });
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js").catch(function (error) {
+            console.error("GRADE X service worker error:", error);
+        });
     });
 }
-</script>
 
-<script>
-window.addEventListener("load", function () {
-    const splash = document.getElementById("gx-splash");
+/* Remove the splash even if another script has an error. */
+(function () {
+    function hideSplash() {
+        var splash = document.getElementById("gx-splash");
+        if (!splash) return;
 
-    if (splash) {
-        setTimeout(function () {
-            splash.classList.add("gx-hide");
-        }, 2300);
+        splash.classList.add("gx-hide");
 
-        setTimeout(function () {
-            splash.remove();
-        }, 3100);
+        window.setTimeout(function () {
+            if (splash.parentNode) splash.parentNode.removeChild(splash);
+        }, 800);
     }
-});
+
+    window.setTimeout(hideSplash, 3500);
+    window.addEventListener("load", hideSplash, { once: true });
+})();
 </script>
 
 </body>
