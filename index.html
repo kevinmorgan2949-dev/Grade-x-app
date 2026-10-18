@@ -515,17 +515,22 @@ href="https://kevinmorgan2949-dev.github.io/Grade-X-community-/"
     <p id="profileEmail">Student email</p>
 
     <div class="profile-badge">🎓 GRADE X Student</div>
-
-    <div class="profile-edit-form">
-        <label for="profileNameInput">Display Name</label>
+        <label for="profileUsernameInput">Username</label>
 
         <input
             type="text"
-            id="profileNameInput"
-            placeholder="Enter your name"
-            maxlength="60"
+            id="profileUsernameInput"
+            placeholder="e.g. kelvin_morgan"
+            minlength="3"
+            maxlength="20"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
         >
 
+        <p class="small-note">
+            Choose a unique username using letters, numbers, and underscores.
+        </p>
         <button type="button" id="saveProfileBtn">
             💾 Save Changes
         </button>
