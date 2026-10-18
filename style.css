@@ -1092,3 +1092,40 @@ footer p:last-child {
     font-size: 13px;
     overflow-wrap: anywhere;
 }
+
+/* GRADE X PDF author display */
+.pdf-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+    min-width: 0;
+}
+
+.pdf-author-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px;
+    max-width: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.pdf-author-avatar-fallback {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+    background: #25233a;
+}
+
+.pdf-author-name {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
