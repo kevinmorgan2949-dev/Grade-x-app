@@ -41,7 +41,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 [hidden] { display: none !important; }
 
 .topbar {
-  position: sticky;
+  position: relative;
   top: 0;
   z-index: 50;
   min-height: 61px;
@@ -390,34 +390,37 @@ footer { padding: 22px 16px; text-align: center; color: var(--muted); font-size:
   <p>PREPARE TO RISE</p>
 </div>
 
+
+
 <header class="topbar">
-  <div class="brand">
-    <div class="brand-icon">X</div>
-    <div>
-      <h1>GRADE <span>X</span></h1>
-      <p>YOUR KNOWLEDGE. YOUR POWER.</p>
+  <div class="topbar-main">
+    <div class="brand">
+      <div class="brand-icon">X</div>
+      <div>
+        <h1>GRADE <span>X</span></h1>
+        <p>YOUR KNOWLEDGE. YOUR POWER.</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button type="button" class="icon-button" id="gxNotificationsButton" aria-label="Notifications">♡</button>
+      <button type="button" class="icon-button" id="gxSettingsButton" aria-label="Settings">☰</button>
     </div>
   </div>
-  
 
-<div class="topbar-actions">
-  <button type="button" class="icon-button" id="gxNotificationsButton" aria-label="Notifications">♡</button>
-  <button type="button" class="icon-button" id="gxSettingsButton" aria-label="Settings">☰</button>
-</div>
-
-<div class="dm-button-row">
-  <button type="button" id="gxDMButton" class="gx-dm-button" aria-label="Messages">
-    <svg viewBox="0 0 24 24" width="23" height="23" fill="none"
-         stroke="currentColor" stroke-width="1.8"
-         stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 3 14 21l-4-8-7-4 18-6Z"/>
-      <path d="M10 13 21 3"/>
-    </svg>
-    <span>Messages</span>
-  </button>
-</div>
-
+  <div class="dm-button-row">
+    <button type="button" id="gxDMButton" class="gx-dm-button" aria-label="Messages">
+      <svg viewBox="0 0 24 24" width="23" height="23" fill="none"
+           stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 3 14 21l-4-8-7-4 18-6Z"/>
+        <path d="M10 13 21 3"/>
+      </svg>
+      <span>Messages</span>
+    </button>
+  </div>
 </header>
+
 
 <main>
 

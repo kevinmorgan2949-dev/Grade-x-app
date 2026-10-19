@@ -212,24 +212,16 @@ input[type="file"]::file-selector-button {
    HEADER
 ========================================= */
 
+
 .topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 50;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-
+  display: block;
   padding: 13px max(16px, calc((100% - 1000px) / 2));
-
   background: rgba(11,9,24,0.88);
   border-bottom: 1px solid var(--border);
-
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
+
 
 .brand {
   display: flex;
@@ -1610,37 +1602,94 @@ footer p:last-child {
   line-height: 1;
 }
 
-/* GRADE X Arena — White DM Button */
+
+/* GRADE X — HEADER AND MESSAGES LAYOUT */
+
+.topbar {
+  position: relative;
+  z-index: 50;
+  display: block;
+  padding: 13px max(16px, calc((100% - 1000px) / 2));
+  background: rgba(11,9,24,0.88);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 22px;
+}
 
 .dm-button-row {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  padding: 8px 16px;
-  box-sizing: border-box;
+  padding: 10px 0 0;
 }
 
 .gx-dm-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 16px;
-  border: 1px solid #dddddd;
+  padding: 9px 15px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #ffffff;
-  color: #000000;
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
 }
 
 .gx-dm-button svg {
-  width: 23px;
-  height: 23px;
-  stroke: #000000;
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
 }
 
 .gx-dm-button:active {
-  background: #eeeeee;
+  opacity: 0.8;
+}
+
+@media (max-width: 650px) {
+  .topbar {
+    padding: 11px 13px;
+  }
+
+  .topbar-main {
+    gap: 8px;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .icon-button {
+    width: 38px;
+    height: 38px;
+  }
 }
