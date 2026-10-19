@@ -368,6 +368,119 @@ footer { padding: 22px 16px; text-align: center; color: var(--muted); font-size:
   .brand p { font-size: 8px; letter-spacing: .4px; }
   .arena-games-grid { grid-template-columns: 1fr; }
 }
+
+/* GRADE X — CREATE POST POPUP */
+.gx-create-post-modal[hidden] {
+  display: none !important;
+}
+
+.gx-create-post-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.gx-create-post-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.gx-create-post-dialog {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #171421;
+  color: #fff;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.5);
+}
+
+.gx-create-post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gx-create-post-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.gx-create-post-header button {
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.gx-create-post-modal-body {
+  padding: 18px;
+}
+
+.gx-create-post-modal-body form {
+  display: grid;
+  gap: 12px;
+}
+
+.gx-create-post-modal-body label {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.gx-create-post-modal-body input,
+.gx-create-post-modal-body textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #39324d;
+  border-radius: 10px;
+  background: #211c30;
+  color: white;
+}
+
+#gxPostMediaPreview img,
+#gxPostMediaPreview video {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #08070b;
+}
+
+#gxPublishPostBtn {
+  padding: 13px;
+  border: 0;
+  border-radius: 10px;
+  background: #8b5cf6;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#gxPublishPostBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+body.gx-modal-open {
+  overflow: hidden;
+}
+
 </style>
 </head>
 
@@ -476,14 +589,15 @@ footer { padding: 22px 16px; text-align: center; color: var(--muted); font-size:
     <button type="button" class="compose-plus" data-open-view="create" aria-label="Create post">＋</button>
   </div>
 
-  <div class="feed-post">
+  <
+  <div id="gxHomeSocialFeed" class="gx-home-social-feed">
     <div class="empty-feed">
       <div class="empty-icon">💜</div>
-      <h3>Your student feed starts here</h3>
-      <p>Posts from GRADE X students will appear here after the social feed is connected to Supabase.</p>
-      <button type="button" class="gx-primary" data-open-view="create">Create a Post</button>
+      <h3>Loading student posts...</h3>
+      <p>Photos and videos shared by GRADE X students will appear here.</p>
     </div>
   </div>
+
 
   
 
@@ -509,21 +623,6 @@ footer { padding: 22px 16px; text-align: center; color: var(--muted); font-size:
   <div class="feature-note">Searching student profiles and posts will be enabled when social search is connected to the backend.</div>
 </section>
 
-<!-- CREATE: STUDENT COMMUNITY FEED -->
-<section id="gxCreateView" class="social-view" hidden>
-  <div class="page-heading">
-    <h2>Community</h2>
-    <p>See what students are sharing.</p>
-  </div>
-  
-  <div id="gxCommunityFeed">
-    <div class="empty-feed">
-      <div class="empty-icon">💜</div>
-      <h3>Nothing here yet</h3>
-      <p>When students publish posts, they will appear here.</p>
-    </div>
-  </div>
-</section>
 <!-- MESSAGES -->
 <section id="gxMessagesView" class="social-view" hidden>
   <div class="page-heading"><h2>Messages</h2><p>Your student conversations will appear here.</p></div>
@@ -842,6 +941,48 @@ footer { padding: 22px 16px; text-align: center; color: var(--muted); font-size:
   </button>
 
 </nav>
+<!-- GRADE X — INSTAGRAM-STYLE CREATE POST POPUP -->
+<div id="gxCreatePostModal" class="gx-create-post-modal" hidden>
+  <div class="gx-create-post-backdrop" data-close-create-post></div>
+
+  <div class="gx-create-post-dialog" role="dialog" aria-modal="true" aria-labelledby="gxModalTitle">
+    <div class="gx-create-post-header">
+      <button type="button" data-close-create-post aria-label="Close">✕</button>
+      <h2 id="gxModalTitle">Create post</h2>
+      <span></span>
+    </div>
+
+    <div class="gx-create-post-modal-body">
+      <p>Share a photo or video with GRADE X.</p>
+
+      <form id="gxSocialPostForm">
+        <label for="gxPostMedia">Choose a photo or video</label>
+        <input
+          type="file"
+          id="gxPostMedia"
+          accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+          required
+        >
+
+        <div id="gxPostMediaPreview" hidden>
+          <img id="gxPostImagePreview" alt="Selected photo preview" hidden>
+          <video id="gxPostVideoPreview" controls playsinline hidden></video>
+        </div>
+
+        <label for="gxPostCaption">Caption</label>
+        <textarea
+          id="gxPostCaption"
+          placeholder="Write a caption..."
+          maxlength="1500"
+          rows="3"
+        ></textarea>
+
+        <button type="submit" id="gxPublishPostBtn">Share</button>
+        <p id="gxPostStatus" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- KEEP YOUR EXISTING APP CONNECTION -->
 <script src="app.js"></script>

@@ -1694,3 +1694,381 @@ if (menuBtn) {
         }
     });
 }
+
+/* ============================================
+   GRADE X SOCIAL — MEDIA PREVIEW
+============================================ */
+
+(function initGXSocialMediaPreview() {
+    const mediaInput = document.getElementById("gxPostMedia");
+    const previewBox = document.getElementById("gxPostMediaPreview");
+    const imagePreview = document.getElementById("gxPostImagePreview");
+    const videoPreview = document.getElementById("gxPostVideoPreview");
+
+    if (!mediaInput || !previewBox || !imagePreview || !videoPreview) {
+        return;
+    }
+
+    let previewUrl = null;
+
+    mediaInput.addEventListener("change", function () {
+        const file = mediaInput.files && mediaInput.files[0];
+
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+
+        imagePreview.hidden = true;
+        videoPreview.hidden = true;
+        imagePreview.removeAttribute("src");
+        videoPreview.removeAttribute("src");
+        previewBox.hidden = true;
+
+        if (!file) return;
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "video/mp4",
+            "video/webm",
+            "video/quicktime"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Choose a JPG, PNG, WEBP, GIF, MP4, WEBM, or MOV file.");
+            mediaInput.value = "";
+            return;
+        }
+
+        const isVideo = file.type.startsWith("video/");
+
+        const maxSize = isVideo
+            ? 50 * 1024 * 1024
+            : 10 * 1024 * 1024;
+
+        if (file.size > maxSize) {
+            alert(
+                isVideo
+                    ? "Videos must be 50 MB or smaller."
+                    : "Photos must be 10 MB or smaller."
+            );
+
+            mediaInput.value = "";
+            return;
+        }
+
+        previewUrl = URL.createObjectURL(file);
+
+        if (isVideo) {
+            videoPreview.src = previewUrl;
+            videoPreview.hidden = false;
+        } else {
+            imagePreview.src = previewUrl;
+            imagePreview.hidden = false;
+        }
+
+        previewBox.hidden = false;
+    });
+})();
+
+/* ============================================
+   GRADE X SOCIAL — UPLOAD AND PUBLISH POSTS
+============================================ */
+
+(function initGXSocialPosting() {
+    const form = document.getElementById("gxSocialPostForm");
+    const mediaInput = document.getElementById("gxPostMedia");
+    const captionInput = document.getElementById("gxPostCaption");
+    const publishBtn = document.getElementById("gxPublishPostBtn");
+    const statusBox = document.getElementById("gxPostStatus");
+    const feed = document.getElementById("gxHomeSocialFeed");
+
+    if (!form || !mediaInput || !captionInput || !publishBtn || !statusBox || !feed) {
+        console.warn("GRADE X Social: posting form elements not found.");
+        return;
+    }
+
+    const CLOUDINARY_URL =
+        "https://api.cloudinary.com/v1_1/lmzznasm/auto/upload";
+
+    const UPLOAD_PRESET = "gradex_social";
+
+    function showPostStatus(message, isError) {
+        statusBox.textContent = message;
+        statusBox.style.color = isError ? "#ff6b81" : "#a78bfa";
+    }
+
+    function safeText(value) {
+        if (typeof escapeHTML === "function") {
+            return escapeHTML(String(value ?? ""));
+        }
+
+        return String(value ?? "").replace(/[&<>"']/g, function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            }[char];
+        });
+    }
+
+    async function loadGXSocialFeed() {
+        feed.innerHTML = `
+            <div class="empty-feed">
+                <div class="empty-icon">💜</div>
+                <h3>Loading community...</h3>
+                <p>Please wait.</p>
+            </div>
+        `;
+
+        const { data, error } = await db
+            .from("social_posts")
+            .select(`
+                id,
+                user_id,
+                media_url,
+                media_type,
+                caption,
+                created_at,
+                profiles!social_posts_profile_fk (
+                    display_name,
+                    full_name,
+                    avatar_url
+                )
+            `)
+            .order("created_at", { ascending: false })
+            .limit(50);
+
+        if (error) {
+            console.error("Social feed error:", error);
+            feed.innerHTML = `
+                <div class="empty-feed">
+                    <h3>Couldn't load posts</h3>
+                    <p>Please check your connection and try again.</p>
+                    <button type="button" id="gxRetryFeedBtn">Try Again</button>
+                </div>
+            `;
+
+            const retryBtn = document.getElementById("gxRetryFeedBtn");
+            if (retryBtn) {
+                retryBtn.addEventListener("click", loadGXSocialFeed);
+            }
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            feed.innerHTML = `
+                <div class="empty-feed">
+                    <div class="empty-icon">💜</div>
+                    <h3>No posts yet</h3>
+                    <p>Be the first to share something with GRADE X students.</p>
+                </div>
+            `;
+            return;
+        }
+
+        feed.innerHTML = data.map(function (post) {
+            const profile = post.profiles || {};
+            const author = profile.display_name ||
+                profile.full_name ||
+                "GRADE X Student";
+
+            const caption = safeText(post.caption);
+            const safeAuthor = safeText(author);
+            const avatarUrl = profile.avatar_url || "";
+
+            let avatar = `<div class="gx-social-avatar">👤</div>`;
+
+            if (
+                avatarUrl &&
+                /^https:\/\//i.test(avatarUrl)
+            ) {
+                avatar = `
+                    <img
+                        class="gx-social-avatar"
+                        src="${safeText(avatarUrl)}"
+                        alt=""
+                        loading="lazy"
+                    >
+                `;
+            }
+
+            let media = "";
+
+            if (
+                post.media_type === "image" &&
+                /^https:\/\/res\.cloudinary\.com\/lmzznasm\//i.test(post.media_url)
+            ) {
+                media = `
+                    <img
+                        class="gx-social-post-media"
+                        src="${safeText(post.media_url)}"
+                        alt="Photo shared by ${safeAuthor}"
+                        loading="lazy"
+                    >
+                `;
+            } else if (
+                post.media_type === "video" &&
+                /^https:\/\/res\.cloudinary\.com\/lmzznasm\//i.test(post.media_url)
+            ) {
+                media = `
+                    <video
+                        class="gx-social-post-media"
+                        src="${safeText(post.media_url)}"
+                        controls
+                        playsinline
+                        preload="metadata"
+                    ></video>
+                `;
+            } else {
+                media = `<p>Media unavailable.</p>`;
+            }
+
+            const date = post.created_at
+                ? safeText(new Date(post.created_at).toLocaleDateString())
+                : "";
+
+            return `
+                <article class="gx-social-post-card">
+                    <div class="gx-social-post-author">
+                        ${avatar}
+                        <div>
+                            <strong>${safeAuthor}</strong>
+                            <small>${date}</small>
+                        </div>
+                    </div>
+                    ${media}
+                    ${caption ? `<p class="gx-social-post-caption">${caption}</p>` : ""}
+                </article>
+            `;
+        }).join("");
+    }
+
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        if (!currentUser) {
+            showPostStatus("Please sign in before publishing.", true);
+            return;
+        }
+
+        const file = mediaInput.files && mediaInput.files[0];
+
+        if (!file) {
+            showPostStatus("Choose a photo or video first.", true);
+            return;
+        }
+
+        const isVideo = file.type.startsWith("video/");
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "video/mp4",
+            "video/webm",
+            "video/quicktime"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            showPostStatus("That file type is not supported.", true);
+            return;
+        }
+
+        const maxSize = isVideo
+            ? 50 * 1024 * 1024
+            : 10 * 1024 * 1024;
+
+        if (file.size > maxSize) {
+            showPostStatus(
+                isVideo
+                    ? "Videos must be 50 MB or smaller."
+                    : "Photos must be 10 MB or smaller.",
+                true
+            );
+            return;
+        }
+
+        const caption = captionInput.value.trim();
+
+        publishBtn.disabled = true;
+        showPostStatus("Uploading your media...", false);
+
+        try {
+            const uploadData = new FormData();
+            uploadData.append("file", file);
+            uploadData.append("upload_preset", UPLOAD_PRESET);
+
+            const uploadResponse = await fetch(CLOUDINARY_URL, {
+                method: "POST",
+                body: uploadData
+            });
+
+            const uploadResult = await uploadResponse.json();
+
+            if (!uploadResponse.ok || !uploadResult.secure_url) {
+                console.error("Cloudinary upload failed:", uploadResult);
+                throw new Error(
+                    uploadResult.error?.message || "Media upload failed."
+                );
+            }
+
+            showPostStatus("Media uploaded. Publishing your post...", false);
+
+            const mediaUrl = uploadResult.secure_url;
+            const mediaHostIsValid =
+                /^https:\/\/res\.cloudinary\.com\/lmzznasm\//i.test(mediaUrl);
+
+            if (!mediaHostIsValid) {
+                throw new Error("The uploaded media URL could not be verified.");
+            }
+
+            const { error: insertError } = await db
+                .from("social_posts")
+                .insert({
+                    user_id: currentUser.id,
+                    media_url: mediaUrl,
+                    media_type: isVideo ? "video" : "image",
+                    caption: caption
+                });
+
+            if (insertError) {
+                console.error("Saving social post failed:", insertError);
+                throw new Error(insertError.message);
+            }
+
+            form.reset();
+
+            mediaInput.dispatchEvent(new Event("change"));
+
+            showPostStatus("Post published successfully! 💜", false);
+
+            await loadGXSocialFeed();
+
+        } catch (error) {
+            console.error("GRADE X Social publish error:", error);
+            showPostStatus(
+                error.message || "Couldn't publish your post. Please try again.",
+                true
+            );
+        } finally {
+            publishBtn.disabled = false;
+        }
+    });
+
+    // Load posts when this code starts.
+    loadGXSocialFeed();
+
+    // Refresh the feed when the signed-in account changes.
+    db.auth.onAuthStateChange(function (_event, session) {
+        if (session && session.user) {
+            loadGXSocialFeed();
+        }
+    });
+})();
