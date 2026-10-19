@@ -1333,6 +1333,7 @@ if (nextQuestion) {
 
 const profileNameInput = getElement("profileNameInput");
 const profileUsernameInput = getElement("profileUsernameInput");
+const profileBioInput = getElement("profileBioInput");
 const profileNameDisplay = getElement("profileName");
 const profileEmailDisplay = getElement("profileEmail");
 const profilePictureInput = getElement("profilePictureInput");
@@ -1370,7 +1371,7 @@ function renderProfile() {
         profileUsernameInput.dataset.userId = currentUser.id;
 
         db.from("student_public_profiles")
-            .select("username")
+.select("username, bio")
             .eq("id", currentUser.id)
             .maybeSingle()
             .then(function ({ data, error }) {
@@ -1385,6 +1386,9 @@ function renderProfile() {
                     currentUser.id === profileUsernameInput.dataset.userId
                 ) {
                     profileUsernameInput.value = data?.username || "";
+                    if (profileBioInput) {
+    profileBioInput.value = data?.bio || "";
+}
                 }
             })
             .catch(function (error) {
@@ -1511,6 +1515,9 @@ if (saveProfileBtn) {
         const usernameInput = profileUsernameInput
             ? profileUsernameInput.value.trim().toLowerCase()
             : "";
+            const bioInput = profileBioInput ?
+    profileBioInput.value.trim() :
+    "";
 
         if (!displayName) {
             showMessage(
@@ -1610,12 +1617,13 @@ if (saveProfileBtn) {
 
             // Save the public profile, including username.
             const publicProfile = {
-                id: currentUser.id,
-                full_name: displayName,
-                display_name: displayName,
-                avatar_url: avatarUrl,
-                username: usernameInput || null
-            };
+    id: currentUser.id,
+    full_name: displayName,
+    display_name: displayName,
+    avatar_url: avatarUrl,
+    username: usernameInput || null,
+    bio: bioInput
+};
 
             const { error: publicProfileError } = await db
                 .from("student_public_profiles")

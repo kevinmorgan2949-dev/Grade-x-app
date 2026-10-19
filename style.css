@@ -1537,3 +1537,110 @@ footer p:last-child {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* GRADE X Instagram-style bottom navigation */
+.social-bottom-nav {
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+}
+
+.social-nav-icon {
+  width: 23px;
+  height: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.social-nav-icon svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.social-nav-button {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+  color: #c6b9df;
+  font-size: 9px;
+}
+
+.social-nav-button.active {
+  color: #bd9bff;
+  font-weight: 800;
+}
+
+/* GRADE X page back button */
+.gx-back-button {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  color: #ffffff;
+  background: rgba(35, 15, 65, 0.95);
+  border: 1px solid #7952b3;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gx-back-button[hidden] {
+  display: none !important;
+}
+
+.gx-back-button span {
+  font-size: 21px;
+  line-height: 1;
+}
+
+/* GRADE X Arena — White DM Button */
+
+.dm-button-row {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 8px 16px;
+  box-sizing: border-box;
+}
+
+.gx-dm-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gx-dm-button svg {
+  width: 23px;
+  height: 23px;
+  stroke: #000000;
+}
+
+.gx-dm-button:active {
+  background: #eeeeee;
+}
