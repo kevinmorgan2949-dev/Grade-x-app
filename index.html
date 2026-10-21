@@ -634,6 +634,7 @@ body.gx-modal-open {
 </section>
 
 <!-- SOCIAL PROFILE -->
+<!-- SOCIAL PROFILE -->
 <section id="gxProfileView" class="social-view" hidden>
   <div class="profile-cover"></div>
   <div class="profile-social-card">
@@ -653,12 +654,57 @@ body.gx-modal-open {
 <p class="profile-bio" id="gxSocialProfileBio">
   🎓 Learning • Knowledge • Growth
 </p>
-    <div class="profile-stats">
-      <div><strong>—</strong><span>Posts</span></div>
-      <div><strong>—</strong><span>Followers</span></div>
-      <div><strong>—</strong><span>Following</span></div>
+    
+<div class="profile-stats">
+  <div><strong id="gxProfilePostCount">0</strong><span>Posts</span></div>
+  <div><strong id="gxProfileFollowerCount">0</strong><span>Followers</span></div>
+  <div><strong id="gxProfileFollowingCount">0</strong><span>Following</span></div>
+</div>
+
+<div class="gx-profile-posts-section">
+  <h3>My Posts</h3>
+  <div id="gxProfilePostsGrid" class="gx-profile-posts-grid">
+    <div class="empty-feed">
+      <p>Your posts will appear here.</p>
     </div>
-    <p class="small-note">Social statistics will appear after these features are implemented.</p>
+  </div>
+</div>
+
+<section id="gxProfileView" class="social-view" hidden>
+  <div class="profile-cover"></div>
+  <div class="profile-social-card">
+    <div class="profile-social-top">
+      <div class="profile-social-avatar">
+        <img id="gxProfilePreviewImage" src="" alt="" hidden>
+        <span id="gxProfilePreviewFallback">👤</span>
+      </div>
+      <button type="button" class="gx-secondary" data-open-view="profileSettings">Edit Profile</button>
+    </div>
+  <h2 id="gxSocialProfileName">GRADE X Student</h2>
+
+<div class="profile-handle" id="gxSocialProfileHandle">
+  @username
+</div>
+
+<p class="profile-bio" id="gxSocialProfileBio">
+  🎓 Learning • Knowledge • Growth
+</p>
+    
+<div class="profile-stats">
+  <div><strong id="gxProfilePostCount">0</strong><span>Posts</span></div>
+  <div><strong id="gxProfileFollowerCount">0</strong><span>Followers</span></div>
+  <div><strong id="gxProfileFollowingCount">0</strong><span>Following</span></div>
+</div>
+
+<div class="gx-profile-posts-section">
+  <h3>My Posts</h3>
+  <div id="gxProfilePostsGrid" class="gx-profile-posts-grid">
+    <div class="empty-feed">
+      <p>Your posts will appear here.</p>
+    </div>
+  </div>
+</div>
+
   </div>
   <div class="profile-menu">
     <h3>Your GRADE X</h3>
@@ -1325,7 +1371,87 @@ if (dmButton) {
     history.pushState({ gxPage: true }, "", location.href);
   });
 
+/* GRADE X — CREATE POST MODAL AND MEDIA PREVIEW */
+(function () {
+  const modal = document.getElementById("gxCreatePostModal");
+  const form = document.getElementById("gxSocialPostForm");
+  const mediaInput = document.getElementById("gxPostMedia");
+  const preview = document.getElementById("gxPostMediaPreview");
+  const image = document.getElementById("gxPostImagePreview");
+  const video = document.getElementById("gxPostVideoPreview");
+  const status = document.getElementById("gxPostStatus");
+
+  if (!modal || !form || !mediaInput) return;
+
+  function openCreatePost() {
+    modal.hidden = false;
+    document.body.classList.add("gx-modal-open");
+  }
+
+  function closeCreatePost() {
+    modal.hidden = true;
+    document.body.classList.remove("gx-modal-open");
+  }
+
+  document.querySelectorAll('[data-open-view="create"]').forEach(button => {
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      openCreatePost();
+    });
+  });
+
+  document.querySelectorAll("[data-close-create-post]").forEach(button => {
+    button.addEventListener("click", closeCreatePost);
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeCreatePost();
+    }
+  });
+
+  mediaInput.addEventListener("change", function () {
+    const file = mediaInput.files && mediaInput.files[0];
+
+    image.hidden = true;
+    video.hidden = true;
+    preview.hidden = true;
+
+    image.removeAttribute("src");
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+
+    if (!file) return;
+
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+
+    if (!isImage && !isVideo) {
+      mediaInput.value = "";
+      if (status) status.textContent = "Choose a valid photo or video.";
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+
+    if (isImage) {
+      image.src = url;
+      image.hidden = false;
+    } else {
+      video.src = url;
+      video.hidden = false;
+    }
+
+    preview.hidden = false;
+
+    if (status) status.textContent = "";
+  });
+
+  window.gxCloseCreatePost = closeCreatePost;
+})();
+
 </script>
 
 </body>
-</html>
+</html

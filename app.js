@@ -2380,3 +2380,89 @@ const commentsHTML = (data || []).map(function (comment) {
         }
     });
 })();
+
+/* ==========================================
+   GRADE X — LOAD MY PROFILE POSTS
+========================================== */
+
+async function loadGXProfilePosts() {
+    const grid = document.getElementById("gxProfilePostsGrid");
+    const postCount = document.getElementById("gxProfilePostCount");
+
+    if (!grid || !currentUser) return;
+
+    grid.innerHTML = '<div class="empty-feed"><p>Loading your posts...</p></div>';
+
+    const { data, error } = await db
+        .from("social_posts")
+        .select("id, media_url, media_type, caption, created_at")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Could not load profile posts:", error);
+        grid.innerHTML = '<div class="empty-feed"><p>Could not load your posts. Please try again.</p></div>';
+        return;
+    }
+
+    if (postCount) {
+        postCount.textContent = data.length;
+    }
+
+    if (!data.length) {
+        grid.innerHTML = '<div class="empty-feed"><p>You have not shared any posts yet.</p></div>';
+        return;
+    }
+
+    grid.innerHTML = data.map(function(post) {
+        const mediaUrl = String(post.media_url || "");
+        const safeUrl = mediaUrl.startsWith("https://res.cloudinary.com/lmzznasm/")
+            ? mediaUrl
+            : "";
+
+        if (!safeUrl) return "";
+
+        const isVideo = post.media_type === "video";
+
+
+        return `
+            <div class="gx-profile-post-item" data-post-id="${post.id}">
+                ${
+                    isVideo
+                        ? `<video
+                               src="${safeUrl}"
+                               muted
+                               playsinline
+                               preload="auto"
+                               controls
+                               style="width:100%;height:100%;object-fit:cover;background:#111;"
+                           ></video>`
+                        : `<img src="${safeUrl}" alt="Your post" loading="lazy">`
+                }
+            </div>
+        `;
+    }).join("");
+
+
+    if (!grid.innerHTML.trim()) {
+        grid.innerHTML = '<div class="empty-feed"><p>No displayable posts found.</p></div>';
+    }
+}
+
+/* Load posts when the social profile becomes visible */
+(function setupGXProfilePostsLoader() {
+    const profile = document.getElementById("gxProfileView");
+
+    if (!profile) return;
+
+    const observer = new MutationObserver(function() {
+        if (!profile.hidden && currentUser) {
+            loadGXProfilePosts();
+        }
+    });
+
+    observer.observe(profile, {
+        attributes: true,
+        attributeFilter: ["hidden", "class", "style"]
+    });
+})();
