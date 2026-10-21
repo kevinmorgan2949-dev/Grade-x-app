@@ -1693,3 +1693,229 @@ footer p:last-child {
     height: 38px;
   }
 }
+
+/* =====================================
+   GRADE X SOCIAL FEED — INSTAGRAM STYLE
+===================================== */
+
+.gx-home-social-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.gx-social-post-card {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    background: var(--card-bg, #17171d);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 16px;
+    color: var(--text-color, #ffffff);
+}
+
+.gx-social-post-author {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 14px;
+}
+
+.gx-social-post-author img {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #292936;
+}
+
+.gx-social-post-author strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.gx-social-post-author small {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    opacity: 0.65;
+}
+
+.gx-social-post-media {
+    display: block;
+    width: 100%;
+    max-height: 520px;
+    aspect-ratio: 4 / 5;
+    object-fit: contain;
+    background: #08080b;
+}
+
+.gx-social-post-caption {
+    margin: 0;
+    padding: 12px 14px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.gx-social-post-card button {
+    font: inherit;
+}
+
+/* =================================
+   GRADE X — INSTAGRAM-STYLE COMMENTS
+================================= */
+
+.gx-social-comments-area {
+    padding: 12px 14px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gx-social-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.gx-social-comment {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 0;
+}
+
+.gx-social-comment strong {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-color, #ffffff);
+}
+
+.gx-social-comment p {
+    margin: 0;
+    padding: 10px 12px;
+    max-width: 100%;
+    box-sizing: border-box;
+    border-radius: 4px 14px 14px 14px;
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--text-color, #ffffff);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.gx-social-comment-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.gx-social-comment-form input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 24px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-color, #ffffff);
+    font-size: 13px;
+}
+
+.gx-social-comment-form input:focus {
+    border-color: #a78bfa;
+}
+
+.gx-social-comment-form button {
+    flex-shrink: 0;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 22px;
+    background: #8b5cf6;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.gx-social-comment-form button:disabled {
+    opacity: 0.5;
+}
+
+.gx-social-comments-list > p,
+.gx-social-comments-area > p {
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+/* GRADE X — STUDENT COMMENT PROFILES */
+
+.gx-social-comment {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+}
+
+.gx-social-comment-avatar {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #292936;
+}
+
+.gx-social-comment-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.gx-social-comment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.gx-social-comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0 6px;
+}
+
+.gx-social-comment-meta strong {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.gx-social-comment-meta small {
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+.gx-social-comment-body p {
+    display: inline-block;
+    max-width: 100%;
+    margin: 0;
+    padding: 9px 12px;
+    border-radius: 4px 14px 14px 14px;
+    background: rgba(255, 255, 255, 0.07);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}

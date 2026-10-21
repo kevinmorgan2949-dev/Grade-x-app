@@ -1917,14 +1917,16 @@ if (menuBtn) {
                 /^https:\/\/res\.cloudinary\.com\/lmzznasm\//i.test(post.media_url)
             ) {
                 media = `
-                    <video
-                        class="gx-social-post-media"
-                        src="${safeText(post.media_url)}"
-                        controls
-                        playsinline
-                        preload="metadata"
-                    ></video>
-                `;
+    <video
+        class="gx-social-post-media gx-auto-play-video"
+        src="${safeText(post.media_url)}"
+        controls
+        playsinline
+        muted
+        loop
+        preload="metadata"
+    ></video>
+`;
             } else {
                 media = `<p>Media unavailable.</p>`;
             }
@@ -1933,21 +1935,327 @@ if (menuBtn) {
                 ? safeText(new Date(post.created_at).toLocaleDateString())
                 : "";
 
-            return `
-                <article class="gx-social-post-card">
-                    <div class="gx-social-post-author">
-                        ${avatar}
-                        <div>
-                            <strong>${safeAuthor}</strong>
-                            <small>${date}</small>
-                        </div>
-                    </div>
-                    ${media}
-                    ${caption ? `<p class="gx-social-post-caption">${caption}</p>` : ""}
-                </article>
-            `;
+            
+return `
+    <article class="gx-social-post-card" data-post-id="${safeText(post.id)}">
+        <div class="gx-social-post-author">
+            ${avatar}
+            <div>
+                <strong>${safeAuthor}</strong>
+                <small>${date}</small>
+            </div>
+        </div>
+
+        ${media}
+
+        ${caption ? `<p class="gx-social-post-caption">${caption}</p>` : ""}
+
+        <div class="gx-social-post-actions">
+            <button
+                type="button"
+                class="gx-social-like-btn"
+                data-post-id="${safeText(post.id)}"
+                aria-label="Like post"
+            >♡ <span class="gx-social-like-count">0</span></button>
+
+            <button
+                type="button"
+                class="gx-social-comment-btn"
+                data-post-id="${safeText(post.id)}"
+            >💬 <span class="gx-social-comment-count">0</span> Comments</button>
+        </div>
+
+        <div class="gx-social-comments-area" data-post-id="${safeText(post.id)}"></div>
+    </article>
+`;
+
         }).join("");
+        
+                await loadGXSocialCounts();
+        
+        setupGXSocialVideoPlayback();
+        }
+        
+        let gxSocialVideoObserver = null;
+        
+        function setupGXSocialVideoPlayback() {
+            if (gxSocialVideoObserver) {
+                gxSocialVideoObserver.disconnect();
+            }
+            
+            const videos = feed.querySelectorAll(".gx-auto-play-video");
+            
+            gxSocialVideoObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    const video = entry.target;
+                    
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                        video.play().catch(() => {});
+                    } else {
+                        video.pause();
+                    }
+                });
+            }, {
+                threshold: [0, 0.6, 1]
+            });
+            
+            videos.forEach((video) => {
+                video.muted = true;
+                gxSocialVideoObserver.observe(video);
+            });
+        }
+        
+        async function loadGXSocialCounts() {
+        const cards = feed.querySelectorAll(".gx-social-post-card");
+
+        for (const card of cards) {
+            const postId = card.dataset.postId;
+
+            const { count: likes, error: likeError } = await db
+                .from("social_post_likes")
+                .select("*", { count: "exact", head: true })
+                .eq("post_id", postId);
+
+            const { count: comments, error: commentError } = await db
+                .from("social_post_comments")
+                .select("*", { count: "exact", head: true })
+                .eq("post_id", postId);
+
+            if (!likeError) {
+                const el = card.querySelector(".gx-social-like-count");
+                if (el) el.textContent = likes ?? 0;
+            }
+
+            if (!commentError) {
+                const el = card.querySelector(".gx-social-comment-count");
+                if (el) el.textContent = comments ?? 0;
+            }
+        }
     }
+
+    feed.addEventListener("click", async function (event) {
+        const button = event.target.closest(".gx-social-like-btn");
+        if (!button) return;
+
+        if (!currentUser) {
+            alert("Please sign in to like posts.");
+            return;
+        }
+
+        const postId = button.dataset.postId;
+        button.disabled = true;
+
+        try {
+            const { data: existing, error: checkError } = await db
+                .from("social_post_likes")
+                .select("post_id")
+                .eq("post_id", postId)
+                .eq("user_id", currentUser.id)
+                .maybeSingle();
+
+            if (checkError) throw checkError;
+
+            if (existing) {
+                const { error } = await db
+                    .from("social_post_likes")
+                    .delete()
+                    .eq("post_id", postId)
+                    .eq("user_id", currentUser.id);
+
+                if (error) throw error;
+            } else {
+                const { error } = await db
+                    .from("social_post_likes")
+                    .insert({
+                        post_id: postId,
+                        user_id: currentUser.id
+                    });
+
+                if (error) throw error;
+            }
+
+            await loadGXSocialCounts();
+        } catch (error) {
+            console.error("Like error:", error);
+            alert("Couldn't update your like. Please try again.");
+        } finally {
+            button.disabled = false;
+        }
+    });
+
+    async function loadGXSocialComments(postId, area) {
+        area.innerHTML = "<p>Loading comments...</p>";
+
+        const { data, error } = await db
+            .from("social_post_comments")
+            .select("id, user_id, content, created_at")
+            .eq("post_id", postId)
+            .order("created_at", { ascending: true });
+
+        if (error) {
+            console.error("Loading comments failed:", error);
+            area.innerHTML = "<p>Couldn't load comments. Please try again.</p>";
+            return;
+        }
+
+        
+const userIds = [
+    ...new Set((data || []).map(comment => comment.user_id).filter(Boolean))
+];
+
+const profileById = {};
+
+if (userIds.length > 0) {
+    const { data: profiles, error: profileError } = await db
+        .from("profiles")
+        .select("id, display_name, full_name, avatar_url")
+        .in("id", userIds);
+
+    if (!profileError && profiles) {
+        profiles.forEach(profile => {
+            profileById[profile.id] = profile;
+        });
+    }
+}
+
+const commentsHTML = (data || []).map(function (comment) {
+    const profile = profileById[comment.user_id] || {};
+
+    const author = safeText(
+        profile.display_name ||
+        profile.full_name ||
+        "GRADE X Student"
+    );
+
+    let avatar = `
+        <div class="gx-social-comment-avatar gx-social-comment-avatar-fallback">
+            👤
+        </div>
+    `;
+
+    if (
+        profile.avatar_url &&
+        /^https:\/\//i.test(profile.avatar_url)
+    ) {
+        avatar = `
+            <img
+                class="gx-social-comment-avatar"
+                src="${safeText(profile.avatar_url)}"
+                alt=""
+                loading="lazy"
+            >
+        `;
+    }
+
+    const time = comment.created_at
+        ? safeText(new Date(comment.created_at).toLocaleString())
+        : "";
+
+    return `
+        <div class="gx-social-comment">
+            ${avatar}
+
+            <div class="gx-social-comment-body">
+                <div class="gx-social-comment-meta">
+                    <strong>${author}</strong>
+                    <small>${time}</small>
+                </div>
+
+                <p>${safeText(comment.content)}</p>
+            </div>
+        </div>
+    `;
+}).join("");
+
+        area.innerHTML = `
+            <div class="gx-social-comments-list">
+                ${commentsHTML || "<p>No comments yet. Start the conversation!</p>"}
+            </div>
+
+            ${currentUser ? `
+                <form class="gx-social-comment-form" data-post-id="${safeText(postId)}">
+                    <input
+                        type="text"
+                        name="comment"
+                        maxlength="2000"
+                        placeholder="Write a comment..."
+                        required
+                    >
+                    <button type="submit">Send</button>
+                </form>
+            ` : `
+                <p>Sign in to write a comment.</p>
+            `}
+        `;
+    }
+
+    feed.addEventListener("click", async function (event) {
+        const button = event.target.closest(".gx-social-comment-btn");
+        if (!button) return;
+
+        const postId = button.dataset.postId;
+        const area = feed.querySelector(
+            '.gx-social-comments-area[data-post-id="' + postId + '"]'
+        );
+
+        if (!area) return;
+
+        if (area.dataset.open === "true") {
+            area.dataset.open = "false";
+            area.innerHTML = "";
+            return;
+        }
+
+        area.dataset.open = "true";
+        await loadGXSocialComments(postId, area);
+    });
+
+    feed.addEventListener("submit", async function (event) {
+        const commentForm = event.target.closest(".gx-social-comment-form");
+        if (!commentForm) return;
+
+        event.preventDefault();
+
+        if (!currentUser) {
+            alert("Please sign in to comment.");
+            return;
+        }
+
+        const postId = commentForm.dataset.postId;
+        const input = commentForm.querySelector('[name="comment"]');
+        const content = input.value.trim();
+
+        if (!content) return;
+
+        const sendButton = commentForm.querySelector('button[type="submit"]');
+        sendButton.disabled = true;
+
+        try {
+            const { error } = await db
+                .from("social_post_comments")
+                .insert({
+                    post_id: postId,
+                    user_id: currentUser.id,
+                    content: content
+                });
+
+            if (error) throw error;
+
+            const area = feed.querySelector(
+                '.gx-social-comments-area[data-post-id="' + postId + '"]'
+            );
+
+            if (area) {
+                await loadGXSocialComments(postId, area);
+            }
+
+            await loadGXSocialCounts();
+        } catch (error) {
+            console.error("Posting comment failed:", error);
+            alert("Couldn't send your comment. Please try again.");
+            sendButton.disabled = false;
+        }
+    });
 
     form.addEventListener("submit", async function (event) {
         event.preventDefault();
