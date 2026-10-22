@@ -2466,3 +2466,605 @@ async function loadGXProfilePosts() {
         attributeFilter: ["hidden", "class", "style"]
     });
 })();
+
+/* ==========================================
+   GRADE X ARENA — PRIVATE MESSAGING
+   Uses the existing Supabase client: db
+   Uses the existing logged-in user: currentUser
+========================================== */
+(function () {
+  "use strict";
+
+  const el = id => document.getElementById(id);
+
+  const search = el("gxDMSearch");
+  const results = el("gxDMStudentResults");
+  const conversationList = el("gxDMConversationList");
+  const chatHeader = el("gxDMChatHeader");
+  const messagesBox = el("gxDMMessages");
+  const composeForm = el("gxDMComposeForm");
+  const messageInput = el("gxDMMessageInput");
+  const sendButton = el("gxDMSendButton");
+  const newChatButton = el("gxDMNewChat");
+
+  if (
+    !search || !results || !conversationList ||
+    !chatHeader || !messagesBox || !composeForm
+  ) {
+    console.warn("GRADE X DM: Messages HTML elements not found.");
+    return;
+  }
+
+  let activeConversation = null;
+  let conversations = [];
+  let activeFilter = "chats";
+  let searchTimer = null;
+  let loadingMessages = false;
+
+  // Create the Chats and Requests tabs without replacing HTML.
+  const tabs = document.createElement("div");
+  tabs.className = "gx-dm-tabs";
+
+  [
+    { id: "chats", label: "Chats" },
+    { id: "requests", label: "Requests" }
+  ].forEach(function (item) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = item.label;
+    button.dataset.dmFilter = item.id;
+
+    button.addEventListener("click", function () {
+      activeFilter = item.id;
+      tabs.querySelectorAll("button").forEach(function (tab) {
+        tab.classList.toggle("active", tab === button);
+      });
+      renderConversationList();
+    });
+
+    tabs.appendChild(button);
+  });
+
+  conversationList.parentNode.insertBefore(
+    tabs,
+    conversationList
+  );
+
+  function getOtherUser(conversation) {
+    return conversation.user_a === currentUser.id
+      ? conversation.user_b
+      : conversation.user_a;
+  }
+
+  function isIncomingRequest(conversation) {
+    return conversation.request_status === "pending" &&
+      conversation.initiated_by !== currentUser.id;
+  }
+
+  function isVisibleInFilter(conversation) {
+    if (activeFilter === "requests") {
+      return isIncomingRequest(conversation);
+    }
+
+    return conversation.request_status === "accepted" ||
+      (
+        conversation.request_status === "pending" &&
+        conversation.initiated_by === currentUser.id
+      );
+  }
+
+  function safeText(value) {
+    return String(value || "");
+  }
+
+  function studentName(student) {
+    if (!student) return "GRADE X Student";
+
+    return student.display_name ||
+      student.full_name ||
+      (student.username ? "@" + student.username : "GRADE X Student");
+  }
+
+  function studentHandle(student) {
+    return student && student.username
+      ? "@" + student.username
+      : "GRADE X student";
+  }
+
+  function makeAvatar(student) {
+    const avatar = document.createElement("div");
+    avatar.className = "gx-dm-avatar";
+
+    if (student && student.avatar_url) {
+      const image = document.createElement("img");
+      image.src = student.avatar_url;
+      image.alt = "";
+      image.onerror = function () {
+        avatar.textContent = "👤";
+      };
+      avatar.appendChild(image);
+    } else {
+      avatar.textContent = "👤";
+    }
+
+    return avatar;
+  }
+
+  function showStatus(container, message) {
+    container.replaceChildren();
+    const paragraph = document.createElement("p");
+    paragraph.className = "gx-dm-status";
+    paragraph.textContent = message;
+    container.appendChild(paragraph);
+  }
+
+  async function searchStudents(query) {
+    if (!currentUser) return;
+
+    query = query.trim().replace(/^@/, "");
+
+    if (query.length < 2) {
+      results.hidden = true;
+      results.replaceChildren();
+      return;
+    }
+
+    results.hidden = false;
+    showStatus(results, "Searching students...");
+
+    const { data, error } = await db.rpc(
+      "gx_search_chat_students",
+      { p_query: query }
+    );
+
+    if (error) {
+      console.error("GX student search:", error);
+      showStatus(results, "Could not search students. Please try again.");
+      return;
+    }
+
+    results.replaceChildren();
+
+    if (!data || data.length === 0) {
+      showStatus(results, "No students found. Check the username and try again.");
+      return;
+    }
+
+    data.forEach(function (student) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "gx-dm-student-result";
+
+      const avatar = makeAvatar(student);
+      const details = document.createElement("span");
+      details.className = "gx-dm-student-details";
+
+      const name = document.createElement("strong");
+      name.textContent = studentName(student);
+
+      const handle = document.createElement("small");
+      handle.textContent = studentHandle(student);
+
+      details.append(name, handle);
+      button.append(avatar, details);
+
+      button.addEventListener("click", function () {
+        startConversation(student);
+      });
+
+      results.appendChild(button);
+    });
+  }
+
+  async function startConversation(student) {
+    if (!currentUser || !student || !student.id) return;
+
+    results.hidden = false;
+    showStatus(results, "Opening conversation...");
+
+    const { data, error } = await db.rpc(
+      "gx_start_conversation",
+      { p_other_user: student.id }
+    );
+
+    if (error) {
+      console.error("GX start conversation:", error);
+      showStatus(results, error.message || "Could not start this conversation.");
+      return;
+    }
+
+    results.hidden = true;
+    search.value = "";
+
+    await loadConversations();
+
+    const conversationId = typeof data === "string"
+      ? data
+      : data && data.id;
+
+    if (conversationId) {
+      await openConversation(conversationId);
+    }
+  }
+
+  async function loadConversations() {
+    if (!currentUser) return;
+
+    conversationList.replaceChildren();
+    showStatus(conversationList, "Loading conversations...");
+
+    const { data, error } = await db
+      .from("gx_conversations")
+      .select("*")
+      .or(
+        "user_a.eq." + currentUser.id +
+        ",user_b.eq." + currentUser.id
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("GX load conversations:", error);
+      showStatus(conversationList, "Could not load conversations.");
+      return;
+    }
+
+    conversations = data || [];
+    await renderConversationList();
+  }
+
+  async function renderConversationList() {
+    conversationList.replaceChildren();
+
+    const visible = conversations.filter(isVisibleInFilter);
+
+    const requestCount = conversations.filter(isIncomingRequest).length;
+    const requestTab = tabs.querySelector('[data-dm-filter="requests"]');
+
+    if (requestTab) {
+      requestTab.textContent = requestCount
+        ? "Requests (" + requestCount + ")"
+        : "Requests";
+    }
+
+    if (visible.length === 0) {
+      showStatus(
+        conversationList,
+        activeFilter === "requests"
+          ? "No new message requests."
+          : "No chats yet. Search for a student to start a conversation."
+      );
+      return;
+    }
+
+    const studentIds = [...new Set(visible.map(getOtherUser))];
+
+    const { data: students, error } = await db
+      .from("student_public_profiles")
+      .select("id,full_name,display_name,username,avatar_url")
+      .in("id", studentIds);
+
+    if (error) {
+      console.error("GX load student names:", error);
+      showStatus(conversationList, "Could not load student profiles.");
+      return;
+    }
+
+    const studentMap = new Map(
+      (students || []).map(student => [student.id, student])
+    );
+
+    visible.forEach(function (conversation) {
+      const student = studentMap.get(getOtherUser(conversation));
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "gx-dm-conversation";
+      button.classList.toggle(
+        "active",
+        conversation.id === activeConversation
+      );
+
+      const avatar = makeAvatar(student);
+      const details = document.createElement("span");
+      details.className = "gx-dm-student-details";
+
+      const name = document.createElement("strong");
+      name.textContent = studentName(student);
+
+      const handle = document.createElement("small");
+
+      if (isIncomingRequest(conversation)) {
+        handle.textContent = "New message request";
+      } else if (conversation.request_status === "pending") {
+        handle.textContent = "Request sent — awaiting response";
+      } else {
+        handle.textContent = studentHandle(student);
+      }
+
+      details.append(name, handle);
+      button.append(avatar, details);
+
+      button.addEventListener("click", function () {
+        openConversation(conversation.id);
+      });
+
+      conversationList.appendChild(button);
+    });
+  }
+
+  async function openConversation(conversationId) {
+    if (!currentUser) return;
+
+    const conversation = conversations.find(
+      item => item.id === conversationId
+    );
+
+    if (!conversation) {
+      await loadConversations();
+      return;
+    }
+
+    activeConversation = conversationId;
+
+    const otherId = getOtherUser(conversation);
+
+    const { data: student, error } = await db
+      .from("student_public_profiles")
+      .select("id,full_name,display_name,username,avatar_url")
+      .eq("id", otherId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("GX open student profile:", error);
+    }
+
+    chatHeader.replaceChildren();
+
+    const heading = document.createElement("div");
+    heading.className = "gx-dm-header-person";
+    heading.appendChild(makeAvatar(student));
+
+    const personDetails = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = studentName(student);
+
+    const handle = document.createElement("p");
+    handle.textContent = studentHandle(student);
+
+    personDetails.append(name, handle);
+    heading.appendChild(personDetails);
+    chatHeader.appendChild(heading);
+
+    const incoming = isIncomingRequest(conversation);
+
+    if (incoming) {
+      const requestNote = document.createElement("p");
+      requestNote.className = "gx-dm-request-note";
+      requestNote.textContent =
+        "This student wants to message you. Accept the request to reply.";
+      chatHeader.appendChild(requestNote);
+
+      const actions = document.createElement("div");
+      actions.className = "gx-dm-request-actions";
+
+      [
+        { label: "Accept", accept: true },
+        { label: "Decline", accept: false }
+      ].forEach(function (item) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = item.label;
+        button.className = item.accept
+          ? "gx-dm-accept"
+          : "gx-dm-decline";
+
+        button.addEventListener("click", async function () {
+          button.disabled = true;
+
+          const { error } = await db.rpc(
+            "gx_respond_message_request",
+            {
+              p_conversation_id: conversationId,
+              p_accept: item.accept
+            }
+          );
+
+          if (error) {
+            console.error("GX respond to request:", error);
+            window.alert(error.message || "Could not update the request.");
+            button.disabled = false;
+            return;
+          }
+
+          await loadConversations();
+
+          if (item.accept) {
+            await openConversation(conversationId);
+          } else {
+            activeConversation = null;
+            resetChat();
+          }
+        });
+
+        actions.appendChild(button);
+      });
+
+      chatHeader.appendChild(actions);
+    }
+
+    messageInput.disabled = incoming;
+    sendButton.disabled = incoming;
+
+    await loadMessages(conversationId);
+    await renderConversationList();
+  }
+
+  async function loadMessages(conversationId) {
+    if (!currentUser || loadingMessages) return;
+
+    loadingMessages = true;
+    messagesBox.replaceChildren();
+    showStatus(messagesBox, "Loading messages...");
+
+    const { data, error } = await db
+      .from("gx_direct_messages")
+      .select("id,conversation_id,sender_id,content,created_at,read_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .limit(200);
+
+    loadingMessages = false;
+
+    if (error) {
+      console.error("GX load messages:", error);
+      showStatus(messagesBox, "Could not load messages.");
+      return;
+    }
+
+    messagesBox.replaceChildren();
+
+    if (!data || data.length === 0) {
+      showStatus(messagesBox, "No messages yet. Say hello!");
+      return;
+    }
+
+    data.forEach(function (message) {
+      const bubble = document.createElement("div");
+      bubble.className = "gx-dm-bubble " +
+        (
+          message.sender_id === currentUser.id
+            ? "gx-dm-bubble-outgoing"
+            : "gx-dm-bubble-incoming"
+        );
+
+      const content = document.createElement("p");
+      content.textContent = message.content;
+
+      const time = document.createElement("small");
+      time.textContent = new Date(message.created_at).toLocaleString(
+        undefined,
+        { hour: "2-digit", minute: "2-digit" }
+      );
+
+      bubble.append(content, time);
+      messagesBox.appendChild(bubble);
+    });
+
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+
+    // Mark messages received from the other student as read.
+    const unreadIds = data
+      .filter(message =>
+        message.sender_id !== currentUser.id && !message.read_at
+      )
+      .map(message => message.id);
+
+    if (unreadIds.length) {
+      const { error: readError } = await db
+        .from("gx_direct_messages")
+        .update({ read_at: new Date().toISOString() })
+        .in("id", unreadIds);
+
+      if (readError) {
+        console.warn("GX mark messages read:", readError);
+      }
+    }
+  }
+
+  function resetChat() {
+    chatHeader.replaceChildren();
+    showStatus(chatHeader, "Select a conversation to start chatting.");
+    showStatus(messagesBox, "Your private conversations will appear here.");
+    messageInput.value = "";
+    messageInput.disabled = false;
+    sendButton.disabled = false;
+  }
+
+  composeForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    if (!currentUser || !activeConversation) {
+      window.alert("Open a conversation first.");
+      return;
+    }
+
+    const conversation = conversations.find(
+      item => item.id === activeConversation
+    );
+
+    if (!conversation || isIncomingRequest(conversation)) {
+      window.alert("Accept the message request before replying.");
+      return;
+    }
+
+    const content = messageInput.value.trim();
+
+    if (!content || content.length > 5000) return;
+
+    sendButton.disabled = true;
+
+    const { error } = await db
+      .from("gx_direct_messages")
+      .insert({
+        conversation_id: activeConversation,
+        sender_id: currentUser.id,
+        content: content
+      });
+
+    sendButton.disabled = false;
+
+    if (error) {
+      console.error("GX send message:", error);
+      window.alert(error.message || "Message could not be sent.");
+      return;
+    }
+
+    messageInput.value = "";
+    await loadMessages(activeConversation);
+  });
+
+  search.addEventListener("input", function () {
+    window.clearTimeout(searchTimer);
+
+    searchTimer = window.setTimeout(function () {
+      searchStudents(search.value).catch(function (error) {
+        console.error("GX student search failed:", error);
+      });
+    }, 350);
+  });
+
+  if (newChatButton) {
+    newChatButton.addEventListener("click", function () {
+      search.focus();
+      search.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  // Refresh conversations whenever the Messages screen is opened.
+  const messagesView = el("gxMessagesView");
+
+  if (messagesView && window.MutationObserver) {
+    let wasVisible = false;
+
+    const observer = new MutationObserver(function () {
+      const isVisible = !messagesView.hidden;
+
+      if (isVisible && !wasVisible && currentUser) {
+        loadConversations();
+      }
+
+      wasVisible = isVisible;
+    });
+
+    observer.observe(messagesView, {
+      attributes: true,
+      attributeFilter: ["hidden"]
+    });
+  }
+
+  // Also load if the screen is already open when this script starts.
+  if (messagesView && !messagesView.hidden && currentUser) {
+    loadConversations();
+  }
+
+  console.log("GRADE X DM interface connected.");
+})();
