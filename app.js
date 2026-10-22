@@ -2783,9 +2783,16 @@ async function loadGXProfilePosts() {
       details.append(name, handle);
       button.append(avatar, details);
 
-      button.addEventListener("click", function () {
-        openConversation(conversation.id);
-      });
+      
+button.addEventListener("click", function () {
+  openConversation(conversation.id);
+
+  const messagesView = document.getElementById("gxMessagesView");
+
+  if (messagesView) {
+    messagesView.classList.add("gx-dm-chat-open");
+  }
+});
 
       conversationList.appendChild(button);
     });
