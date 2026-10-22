@@ -2314,3 +2314,59 @@ footer p:last-child {
   object-fit: cover !important;
   border-radius: 50% !important;
 }
+
+/* GRADE X DM — FIX OVERSIZED CHAT PROFILE */
+#gxMessagesView .gx-dm-header-person {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#gxMessagesView .gx-dm-header-person .gx-dm-avatar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  overflow: hidden !important;
+  flex: 0 0 44px !important;
+  border-radius: 50% !important;
+}
+
+#gxMessagesView .gx-dm-header-person .gx-dm-avatar img {
+  position: static !important;
+  display: block !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+#gxMessagesView .gx-dm-chat-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+  flex-shrink: 0 !important;
+}
+
+#gxMessagesView .gx-dm-request-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+#gxMessagesView .gx-dm-request-note {
+  margin: 0 !important;
+  font-size: 13px !important;
+}
