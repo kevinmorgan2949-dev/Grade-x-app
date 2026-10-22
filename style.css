@@ -2290,3 +2290,27 @@ footer p:last-child {
         padding: 0 14px;
     }
 }
+
+/* GRADE X ARENA — DM avatar size fix */
+.gx-dm-avatar {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  flex: 0 0 44px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+.gx-dm-avatar img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
